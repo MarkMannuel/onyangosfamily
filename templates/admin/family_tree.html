@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Tree Management - Onyango Family</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 0;
+            position: sticky;
+            top: 0;
+        }
+        .sidebar-brand { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-brand h4 { color: white; font-weight: 700; margin: 0; }
+        .sidebar-brand h4 i { color: #f39c12; margin-right: 10px; }
+        .sidebar-brand small { color: rgba(255,255,255,0.6); font-size: 12px; display: block; margin-top: 5px; }
+        .sidebar-nav { padding: 20px 0; }
+        .sidebar-nav .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 12px 25px;
+            margin: 3px 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .sidebar-nav .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-nav .nav-link.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); }
+        .sidebar-nav .nav-link i { width: 25px; margin-right: 10px; }
+        .sidebar-nav .nav-link .badge { float: right; background: #f39c12; color: #1a1a2e; font-weight: 600; padding: 3px 8px; }
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        .sidebar-footer .user-info { color: white; }
+        .sidebar-footer .user-info i { font-size: 32px; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 50%; margin-right: 10px; }
+        .sidebar-footer .user-info .username { font-weight: 600; }
+        .sidebar-footer .user-info .email { font-size: 12px; color: rgba(255,255,255,0.6); }
+        .sidebar-footer .logout-link { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; transition: all 0.3s; }
+        .sidebar-footer .logout-link:hover { color: white; }
+        .main-content { padding: 30px; }
+        .page-header { margin-bottom: 30px; }
+        .page-header h2 { font-weight: 700; color: #1a1a2e; }
+        .page-header h2 i { color: #667eea; margin-right: 10px; }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #f0f2f5;
+            padding: 20px 25px;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: 600;
+        }
+        .card-header i { margin-right: 10px; color: #667eea; }
+        .card-body { padding: 25px; }
+        .tree-node {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .tree-node:hover { background: #f8f9fa; }
+        .tree-node .node-name { font-weight: 600; color: #1a1a2e; }
+        .tree-node .node-relation { font-size: 12px; color: #7f8c8d; }
+        .tree-node .node-actions { display: flex; gap: 5px; }
+        .btn-sm-icon { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .tree-visual {
+            position: relative;
+            padding: 20px;
+            min-height: 400px;
+        }
+        .tree-level {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        .tree-level::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px;
+            background: #667eea;
+        }
+        .tree-level:last-child::after { display: none; }
+        .tree-card-visual {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+            min-width: 150px;
+            position: relative;
+        }
+        .tree-card-visual:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.15);
+        }
+        .tree-card-visual .tree-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: white;
+            font-size: 20px;
+        }
+        .tree-card-visual .tree-name { font-weight: 600; color: #1a1a2e; font-size: 14px; }
+        .tree-card-visual .tree-relation { font-size: 11px; color: #7f8c8d; }
+        .tree-card-visual .root-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f39c12;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .tree-connector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .tree-connector-line {
+            width: 2px;
+            height: 20px;
+            background: #667eea;
+        }
+        @media (max-width: 768px) {
+            .sidebar { min-height: auto; position: relative; }
+            .main-content { padding: 20px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0 sidebar">
+                <div class="sidebar-brand">
+                    <h4><i class="fas fa-users"></i>Family Admin</h4>
+                    <small>Onyango Family Portal</small>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_members') }}" class="nav-link">
+                        <i class="fas fa-user-friends"></i> Members
+                        {% if pending_members_count > 0 %}
+                            <span class="badge">{{ pending_members_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin_posts') }}" class="nav-link">
+                        <i class="fas fa-newspaper"></i> Posts
+                        {% if pending_posts_count > 0 %}
+                            <span class="badge">{{ pending_posts_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin_photos') }}" class="nav-link">
+                        <i class="fas fa-images"></i> Photos
+                        {% if pending_photos_count > 0 %}
+                            <span class="badge">{{ pending_photos_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin_family_tree') }}" class="nav-link active">
+                        <i class="fas fa-sitemap"></i> Family Tree
+                    </a>
+                    <a href="{{ url_for('home') }}" class="nav-link" target="_blank">
+                        <i class="fas fa-eye"></i> View Site
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="user-info d-flex align-items-center">
+                        <i class="fas fa-user-circle"></i>
+                        <div>
+                            <div class="username">{{ current_user.username }}</div>
+                            <div class="email">{{ current_user.email }}</div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('admin_logout') }}" class="logout-link">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <h2><i class="fas fa-sitemap"></i>Family Tree Management</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNodeModal">
+                        <i class="fas fa-plus me-1"></i> Add Member
+                    </button>
+                </div>
+                
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message|safe }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Visual Tree Display -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-tree"></i> Family Tree View
+                    </div>
+                    <div class="card-body">
+                        {% if tree_nodes %}
+                            <div class="tree-visual">
+                                {% set root = tree_nodes|selectattr('parent_id', 'none')|first %}
+                                {% if root %}
+                                    <!-- Root Level -->
+                                    <div class="tree-level">
+                                        <div class="tree-card-visual">
+                                            <div class="root-badge"><i class="fas fa-crown"></i></div>
+                                            <div class="tree-avatar"><i class="fas fa-user"></i></div>
+                                            <div class="tree-name">{{ root.name }}</div>
+                                            <div class="tree-relation">{{ root.relation or 'Root' }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Children Levels -->
+                                    {% set level1 = tree_nodes|selectattr('parent_id', 'equalto', root.id)|list %}
+                                    {% if level1 %}
+                                        <div class="tree-connector">
+                                            {% for _ in level1 %}
+                                                <div class="tree-connector-line"></div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="tree-level">
+                                            {% for node in level1 %}
+                                                <div class="tree-card-visual">
+                                                    <div class="tree-avatar"><i class="fas fa-user"></i></div>
+                                                    <div class="tree-name">{{ node.name }}</div>
+                                                    <div class="tree-relation">{{ node.relation or 'Child' }}</div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Grandchildren Levels -->
+                                    {% set grandchildren = [] %}
+                                    {% for node in level1 %}
+                                        {% set kids = tree_nodes|selectattr('parent_id', 'equalto', node.id)|list %}
+                                        {% for k in kids %}
+                                            {% set _ = grandchildren.append(k) %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% if grandchildren %}
+                                        <div class="tree-connector">
+                                            {% for _ in grandchildren %}
+                                                <div class="tree-connector-line"></div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="tree-level">
+                                            {% for node in grandchildren %}
+                                                <div class="tree-card-visual">
+                                                    <div class="tree-avatar"><i class="fas fa-user"></i></div>
+                                                    <div class="tree-name">{{ node.name }}</div>
+                                                    <div class="tree-relation">{{ node.relation or 'Grandchild' }}</div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-sitemap text-muted" style="font-size: 64px;"></i>
+                                        <h5 class="mt-3 text-muted">No family tree data yet</h5>
+                                        <p class="text-muted">Start by adding the root ancestor using the button above.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-sitemap text-muted" style="font-size: 64px;"></i>
+                                <h5 class="mt-3 text-muted">No family tree data yet</h5>
+                                <p class="text-muted">Start by adding the root ancestor using the button above.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- All Nodes List -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-list"></i> All Family Tree Members
+                        <span class="badge bg-primary float-end">{{ tree_nodes|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if tree_nodes %}
+                            {% for node in tree_nodes %}
+                                <div class="tree-node">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="node-name">
+                                                {% if node.parent_id is none %}
+                                                    <i class="fas fa-crown text-warning me-2"></i>
+                                                {% else %}
+                                                    <i class="fas fa-user text-primary me-2"></i>
+                                                {% endif %}
+                                                {{ node.name }}
+                                            </div>
+                                            <div class="node-relation">
+                                                <i class="fas fa-tag me-1"></i>{{ node.relation or 'No relation specified' }}
+                                                {% if node.parent_id %}
+                                                    {% set parent = tree_nodes|selectattr('id', 'equalto', node.parent_id)|first %}
+                                                    {% if parent %}
+                                                        | <i class="fas fa-arrow-up me-1"></i>Child of: {{ parent.name }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    | <span class="badge bg-warning text-dark">Root Ancestor</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="node-actions">
+                                            <button class="btn btn-outline-primary btn-sm-icon" data-bs-toggle="modal" data-bs-target="#editNodeModal{{ node.id }}" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <a href="{{ url_for('delete_tree_node', node_id=node.id) }}" class="btn btn-outline-danger btn-sm-icon" onclick="return confirm('Delete {{ node.name }} from the family tree?')" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Edit Modal -->
+                                <div class="modal fade" id="editNodeModal{{ node.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Family Tree Member</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form method="POST" action="{{ url_for('edit_tree_node', node_id=node.id) }}">
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Name</label>
+                                                        <input type="text" name="name" class="form-control" value="{{ node.name }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Relation / Title</label>
+                                                        <input type="text" name="relation" class="form-control" value="{{ node.relation or '' }}" placeholder="e.g. Grandfather, Mother, Son">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Parent</label>
+                                                        <select name="parent_id" class="form-control">
+                                                            <option value="">-- Root (No Parent) --</option>
+                                                            {% for p in tree_nodes %}
+                                                                {% if p.id != node.id %}
+                                                                    <option value="{{ p.id }}" {% if node.parent_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-users text-muted" style="font-size: 48px;"></i>
+                                <p class="text-muted mt-3">No members in the family tree yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Node Modal -->
+    <div class="modal fade" id="addNodeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Add Family Tree Member</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('add_tree_node') }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-control" required placeholder="Enter full name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Relation / Title</label>
+                            <input type="text" name="relation" class="form-control" placeholder="e.g. Grandfather, Mother, Son, Daughter">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Parent (optional)</label>
+                            <select name="parent_id" class="form-control">
+                                <option value="">-- Root Ancestor (No Parent) --</option>
+                                {% for node in tree_nodes %}
+                                    <option value="{{ node.id }}">{{ node.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Leave empty if this is the root ancestor.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Add Member</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Gallery - Onyango Family{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5" style="font-family: 'Playfair Display', serif;">
+        <i class="fas fa-images text-primary me-2"></i>Family Gallery
+    </h1>
+
+    <!-- Photos Section -->
+    {% if photos and photos|length > 0 %}
+    <h4 class="mb-3"><i class="fas fa-camera me-2"></i>Photos</h4>
+    <div class="row mb-5">
+        {% for photo in photos %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 overflow-hidden">
+                <img src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}"
+                     style="height:250px; object-fit:cover; cursor:pointer;"
+                     class="card-img-top lightbox-img"
+                     data-src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}"
+                     data-caption="{{ photo.caption or '' }}"
+                     alt="{{ photo.caption or 'Photo' }}">
+                <div class="card-body">
+                    <p class="card-text text-muted mb-0">{{ photo.caption or '' }}</p>
+                    <small class="text-muted">{{ photo.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Videos Section -->
+    {% if videos and videos|length > 0 %}
+    <h4 class="mb-3"><i class="fas fa-video me-2"></i>Videos</h4>
+    <div class="row mb-5">
+        {% for video in videos %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 overflow-hidden">
+                <div style="position:relative; background:#000;">
+                    <video class="w-100" style="height:250px; object-fit:cover;" muted playsinline preload="metadata">
+                        <source src="{{ url_for('static', filename='uploads/' ~ video.filename) }}">
+                    </video>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;">
+                        <button class="btn btn-light btn-sm rounded-circle video-play-btn" title="Play/Pause" style="width:44px;height:44px;">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="btn btn-light btn-sm rounded-circle video-max-btn" title="Maximize"
+                                data-src="{{ url_for('static', filename='uploads/' ~ video.filename) }}"
+                                data-caption="{{ video.caption or '' }}"
+                                style="width:44px;height:44px;">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted mb-0">{{ video.caption or '' }}</p>
+                    <small class="text-muted">{{ video.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if (not photos or photos|length == 0) and (not videos or videos|length == 0) %}
+    <div class="text-center mt-4">
+        <p class="text-muted">No approved media yet.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Photo Lightbox Modal -->
+<div id="lightboxModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+    <button onclick="closeLightbox()" style="position:absolute; top:18px; right:24px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer;">&times;</button>
+    <img id="lightboxImg" src="" alt="" style="max-width:95vw; max-height:85vh; border-radius:8px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
+    <p id="lightboxCaption" style="color:#ddd; margin-top:12px; font-size:1rem;"></p>
+</div>
+
+<!-- Video Maximize Modal -->
+<div id="videoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+    <button onclick="closeVideoModal()" style="position:absolute; top:18px; right:24px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer;">&times;</button>
+    <video id="modalVideo" controls muted style="max-width:95vw; max-height:85vh; border-radius:8px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
+        <source id="modalVideoSrc" src="">
+    </video>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+        <p id="modalVideoCaption" style="color:#ddd; font-size:1rem; margin:0;"></p>
+        <button onclick="toggleMute()" id="muteBtn" class="btn btn-sm btn-outline-light">
+            <i class="fas fa-volume-mute"></i> Unmute
+        </button>
+    </div>
+</div>
+
+<script>
+// Photo Lightbox
+document.querySelectorAll('.lightbox-img').forEach(img => {
+    img.addEventListener('click', function() {
+        document.getElementById('lightboxImg').src = this.dataset.src;
+        document.getElementById('lightboxCaption').textContent = this.dataset.caption;
+        const m = document.getElementById('lightboxModal');
+        m.style.display = 'flex';
+    });
+});
+function closeLightbox() {
+    document.getElementById('lightboxModal').style.display = 'none';
+}
+document.getElementById('lightboxModal').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+});
+
+// Inline video play/pause
+document.querySelectorAll('.video-play-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const video = this.closest('.card').querySelector('video');
+        if (video.paused) { video.play(); this.querySelector('i').className = 'fas fa-pause'; }
+        else { video.pause(); this.querySelector('i').className = 'fas fa-play'; }
+    });
+});
+
+// Video Maximize
+document.querySelectorAll('.video-max-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const src = this.dataset.src;
+        const caption = this.dataset.caption;
+        const mv = document.getElementById('modalVideo');
+        document.getElementById('modalVideoSrc').src = src;
+        mv.load();
+        mv.muted = true;
+        document.getElementById('muteBtn').innerHTML = '<i class="fas fa-volume-mute"></i> Unmute';
+        document.getElementById('modalVideoCaption').textContent = caption;
+        document.getElementById('videoModal').style.display = 'flex';
+        mv.play();
+    });
+});
+function closeVideoModal() {
+    const mv = document.getElementById('modalVideo');
+    mv.pause();
+    document.getElementById('videoModal').style.display = 'none';
+}
+document.getElementById('videoModal').addEventListener('click', function(e) {
+    if (e.target === this) closeVideoModal();
+});
+function toggleMute() {
+    const mv = document.getElementById('modalVideo');
+    mv.muted = !mv.muted;
+    document.getElementById('muteBtn').innerHTML = mv.muted
+        ? '<i class="fas fa-volume-mute"></i> Unmute'
+        : '<i class="fas fa-volume-up"></i> Mute';
+}
+</script>
+{% endblock %}

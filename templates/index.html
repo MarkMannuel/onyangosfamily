@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Onyango Family{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content animate-fadeInLeft">
+                <h1>Welcome to the<br><span class="text-gradient">Onyango Family</span></h1>
+                <p class="hero-subtitle">A community bound by love, tradition, and shared heritage. Join us in celebrating our rich history and building a brighter future together.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{{ url_for('register_member') }}" class="btn-hero-primary">
+                        <i class="fas fa-user-plus me-2"></i>Join Our Family
+                    </a>
+                    <a href="{{ url_for('stories') }}" class="btn-hero-secondary">
+                        <i class="fas fa-book me-2"></i>Read Stories
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center hero-image animate-fadeInRight">
+                <div class="floating-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Family Members -->
+<section class="section-padding">
+    <div class="container">
+        <h2 class="section-title animate-fadeIn">Our Family Members</h2>
+        <p class="section-subtitle animate-fadeIn">Meet the pillars of our family who preserve our heritage</p>
+        <div class="row stagger-children">
+            {% for member in family_members[:4] %}
+            <div class="col-md-3 mb-4">
+                <div class="member-card">
+                    <div class="avatar">
+                        {% if member.profile_picture %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ member.profile_picture) }}" alt="{{ member.name }}">
+                        {% else %}
+                        <i class="fas fa-user"></i>
+                        {% endif %}
+                    </div>
+                    <h5 class="member-name">
+                        <a href="{{ url_for('member_profile', member_id=member.id) }}">{{ member.name }}</a>
+                    </h5>
+                    <p class="member-role">{{ member.role }}</p>
+                    <p class="small text-muted">{{ member.summary[:80] if member.summary else '' }}{% if member.summary and member.summary|length > 80 %}...{% endif %}</p>
+                    <div class="mt-3 d-flex gap-2 justify-content-center">
+                        {% if session.guest_id or session.get('_user_id') %}
+                        <a href="{{ url_for('upload_photo', member_id=member.id) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-camera me-1"></i>Photo
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('member_profile', member_id=member.id) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-user me-1"></i>Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-5">
+            <a href="{{ url_for('about') }}" class="btn btn-outline-primary">
+                <i class="fas fa-users me-2"></i>Meet All Members
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stories -->
+<section class="section-padding" style="background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);">
+    <div class="container">
+        <h2 class="section-title animate-fadeIn">Family Stories</h2>
+        <p class="section-subtitle animate-fadeIn">Discover the rich history and cherished memories</p>
+        <div class="row stagger-children">
+            {% for story in stories %}
+            <div class="col-md-4 mb-4">
+                <div class="story-card">
+                    <div class="story-image">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="story-body">
+                        <h5 class="story-title">{{ story.title }}</h5>
+                        <p class="story-excerpt">{{ story.body[:120] }}{% if story.body|length > 120 %}...{% endif %}</p>
+                    </div>
+                    <div class="story-meta">
+                        <span><i class="fas fa-user me-1"></i>{{ story.author or 'Anonymous' }}</span>
+                        <span><i class="fas fa-calendar me-1"></i>{{ story.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    <div class="px-3 pb-3 d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm flex-fill"
+                                onclick="openStory('{{ story.title|replace("'","\\'")|replace('"','\\"') }}','{{ story.body|replace("'","\\'")|replace('"','\\"')|replace('\n','\\n') }}','{{ story.author or 'Anonymous' }}','{{ story.created_at.strftime('%b %d, %Y') }}')">
+                            <i class="fas fa-expand me-1"></i>Expand
+                        </button>
+                        <a href="{{ url_for('story_detail', post_id=story.id) }}" class="btn btn-outline-primary btn-sm flex-fill">
+                            Read Full <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-5">
+            <a href="{{ url_for('stories') }}" class="btn btn-primary me-3">
+                <i class="fas fa-book me-2"></i>View All Stories
+            </a>
+            <a href="{{ url_for('submit_story') }}" class="btn btn-outline-primary">
+                <i class="fas fa-pen me-2"></i>Share Your Story
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Photos Section -->
+{% if photos and photos|length > 0 %}
+<section class="section-padding">
+    <div class="container">
+        <h2 class="section-title animate-fadeIn">Family Photos</h2>
+        <p class="section-subtitle animate-fadeIn">Capturing moments that matter</p>
+        <div class="row stagger-children">
+            {% for photo in photos %}
+            <div class="col-md-4 col-6 mb-4">
+                <div class="card border-0 shadow-sm overflow-hidden" style="cursor:pointer;"
+                     onclick="openPhoto('{{ url_for('static', filename='uploads/' ~ photo.filename) }}','{{ photo.caption or '' }}')">
+                    <img src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}"
+                         alt="{{ photo.caption or 'Family Photo' }}"
+                         style="height:220px; object-fit:cover; width:100%;">
+                    {% if photo.caption %}
+                    <div class="card-body p-2">
+                        <small class="text-muted">{{ photo.caption }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('gallery') }}" class="btn btn-outline-primary">
+                <i class="fas fa-images me-2"></i>View Full Gallery
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Videos Section -->
+{% if videos and videos|length > 0 %}
+<section class="section-padding" style="background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);">
+    <div class="container">
+        <h2 class="section-title animate-fadeIn">Family Videos</h2>
+        <p class="section-subtitle animate-fadeIn">Relive our cherished moments</p>
+        <div class="row stagger-children">
+            {% for video in videos %}
+            <div class="col-md-4 col-6 mb-4">
+                <div class="card border-0 shadow-sm overflow-hidden">
+                    <div style="position:relative; background:#000; height:220px;">
+                        <video style="width:100%; height:100%; object-fit:cover;" muted playsinline preload="metadata">
+                            <source src="{{ url_for('static', filename='uploads/' ~ video.filename) }}">
+                        </video>
+                        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;">
+                            <button class="btn btn-light btn-sm rounded-circle video-play-btn" style="width:44px;height:44px;" title="Play/Pause">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm rounded-circle video-max-btn" style="width:44px;height:44px;" title="Maximize"
+                                    data-src="{{ url_for('static', filename='uploads/' ~ video.filename) }}"
+                                    data-caption="{{ video.caption or '' }}">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% if video.caption %}
+                    <div class="card-body p-2">
+                        <small class="text-muted">{{ video.caption }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('gallery') }}" class="btn btn-outline-primary">
+                <i class="fas fa-video me-2"></i>View Full Gallery
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Photo Lightbox -->
+<div id="photoOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.93); z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
+    <button onclick="closePhoto()" style="position:absolute;top:16px;right:24px;background:none;border:none;color:#fff;font-size:2.2rem;cursor:pointer;line-height:1;">&times;</button>
+    <img id="photoOverlayImg" src="" alt="" style="max-width:95vw; max-height:85vh; border-radius:10px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
+    <p id="photoOverlayCaption" style="color:#ddd; margin-top:12px; font-size:1rem;"></p>
+</div>
+
+<!-- Video Maximize Overlay -->
+<div id="videoOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
+    <button onclick="closeVideo()" style="position:absolute;top:16px;right:24px;background:none;border:none;color:#fff;font-size:2.2rem;cursor:pointer;line-height:1;">&times;</button>
+    <video id="overlayVideo" controls muted playsinline style="max-width:95vw; max-height:82vh; border-radius:10px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
+        <source id="overlayVideoSrc" src="">
+    </video>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+        <p id="overlayVideoCaption" style="color:#ddd; font-size:1rem; margin:0;"></p>
+        <button onclick="toggleMute()" id="muteBtn" class="btn btn-sm btn-outline-light">
+            <i class="fas fa-volume-mute"></i> Unmute
+        </button>
+    </div>
+</div>
+
+<!-- Story Expand Overlay -->
+<div id="storyOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; border-radius:16px; max-width:700px; width:100%; max-height:85vh; overflow-y:auto; padding:36px; position:relative;">
+        <button onclick="closeStory()" style="position:absolute;top:14px;right:20px;background:none;border:none;font-size:1.8rem;cursor:pointer;color:#555;line-height:1;">&times;</button>
+        <h3 id="storyOverlayTitle" style="font-family:'Playfair Display',serif; margin-bottom:8px;"></h3>
+        <div style="font-size:0.85rem; color:#888; margin-bottom:20px;">
+            <span id="storyOverlayAuthor"></span> &bull; <span id="storyOverlayDate"></span>
+        </div>
+        <p id="storyOverlayBody" style="line-height:1.8; white-space:pre-wrap;"></p>
+    </div>
+</div>
+
+<script>
+// Photo lightbox
+function openPhoto(src, caption) {
+    document.getElementById('photoOverlayImg').src = src;
+    document.getElementById('photoOverlayCaption').textContent = caption;
+    document.getElementById('photoOverlay').style.display = 'flex';
+}
+function closePhoto() {
+    document.getElementById('photoOverlay').style.display = 'none';
+    document.getElementById('photoOverlayImg').src = '';
+}
+document.getElementById('photoOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closePhoto();
+});
+
+// Inline video play/pause
+document.querySelectorAll('.video-play-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const video = this.closest('[style]').querySelector('video');
+        if (video.paused) { video.play(); this.querySelector('i').className = 'fas fa-pause'; }
+        else { video.pause(); this.querySelector('i').className = 'fas fa-play'; }
+    });
+});
+
+// Video maximize
+document.querySelectorAll('.video-max-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const src = this.dataset.src;
+        const caption = this.dataset.caption;
+        const ov = document.getElementById('overlayVideo');
+        document.getElementById('overlayVideoSrc').src = src;
+        ov.load(); ov.muted = true;
+        document.getElementById('muteBtn').innerHTML = '<i class="fas fa-volume-mute"></i> Unmute';
+        document.getElementById('overlayVideoCaption').textContent = caption;
+        document.getElementById('videoOverlay').style.display = 'flex';
+        ov.play();
+    });
+});
+function closeVideo() {
+    const ov = document.getElementById('overlayVideo');
+    ov.pause();
+    document.getElementById('videoOverlay').style.display = 'none';
+    document.getElementById('overlayVideoSrc').src = '';
+}
+document.getElementById('videoOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeVideo();
+});
+function toggleMute() {
+    const ov = document.getElementById('overlayVideo');
+    ov.muted = !ov.muted;
+    document.getElementById('muteBtn').innerHTML = ov.muted
+        ? '<i class="fas fa-volume-mute"></i> Unmute'
+        : '<i class="fas fa-volume-up"></i> Mute';
+}
+
+// Story expand
+function openStory(title, body, author, date) {
+    document.getElementById('storyOverlayTitle').textContent = title;
+    document.getElementById('storyOverlayBody').textContent = body;
+    document.getElementById('storyOverlayAuthor').textContent = author;
+    document.getElementById('storyOverlayDate').textContent = date;
+    document.getElementById('storyOverlay').style.display = 'flex';
+}
+function closeStory() {
+    document.getElementById('storyOverlay').style.display = 'none';
+}
+document.getElementById('storyOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeStory();
+});
+</script>
+{% endblock %}

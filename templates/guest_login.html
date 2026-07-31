@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Guest Login - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0 animate-fadeIn">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <div style="width: 100px; height: 100px; background: var(--gradient-card); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <i class="fas fa-user-friends text-gradient" style="font-size: 48px;"></i>
+                            </div>
+                            <h2 class="mt-4 mb-2">Guest Access</h2>
+                            <p class="text-muted">Enter your invitation code to explore the Onyango Family</p>
+                        </div>
+                        
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Your Name *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" name="name" class="form-control" required placeholder="Enter your full name">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email Address *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" name="email" class="form-control" required placeholder="Enter your email">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Invitation Code *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-ticket-alt"></i></span>
+                                    <input type="text" name="invitation_code" class="form-control" required placeholder="e.g., FAM-ABC123-XYZ" style="text-transform: uppercase;">
+                                </div>
+                                <small class="text-muted mt-2 d-block">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Contact the family admin to get an invitation code
+                                </small>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Enter as Guest
+                            </button>
+                        </form>
+                        
+                        <div class="text-center mt-4">
+                            <div class="alert alert-info mb-0 py-3">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Invitation codes are provided by family administrators
+                            </div>
+                            <a href="{{ url_for('home') }}" class="btn btn-link mt-3 text-decoration-none">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

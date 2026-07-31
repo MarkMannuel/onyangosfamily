@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ member.name }} - Profile{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="profile-card animate-fadeIn">
+<div class="profile-header">
+    <div class="profile-avatar-wrapper">
+        <div class="profile-avatar">
+            {% if member.profile_picture %}
+            <img id="profileAvatarImg" src="{{ url_for('static', filename='uploads/' ~ member.profile_picture) }}" alt="{{ member.name }}">
+            {% else %}
+            <i id="profileAvatarIcon" class="fas fa-user"></i>
+            {% endif %}
+        </div>
+        {% if session.member_id or session.guest_id or session.get('_user_id') %}
+        <button class="edit-avatar-btn" onclick="document.getElementById('profilePicInput').click();" title="Edit Profile Picture">
+            <i class="fas fa-camera"></i>
+        </button>
+        {% endif %}
+    </div>
+    <h2>{{ member.name }}</h2>
+    <p class="mb-0" style="color: rgba(255,255,255,0.7);">{{ member.role or 'Family Member' }}</p>
+</div>
+
+{% if session.member_id or session.guest_id or session.get('_user_id') %}
+<!-- Hidden form for profile picture upload -->
+<form id="profilePicForm" action="{{ url_for('edit_profile_picture', member_id=member.id) }}" method="post" enctype="multipart/form-data" style="display:none;">
+    <input type="file" id="profilePicInput" name="profile_picture" accept="image/*" onchange="document.getElementById('profilePicForm').submit();">
+</form>
+{% endif %}
+                    <div class="profile-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="about-card h-100">
+                                    <h4><i class="fas fa-info-circle"></i>Details</h4>
+                                    <div class="mb-3">
+                                        <small class="text-muted d-block">Role</small>
+                                        <strong>{{ member.role or '—' }}</strong>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small class="text-muted d-block">Relationship</small>
+                                        <strong>{{ member.relationship or '—' }}</strong>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small class="text-muted d-block">Email</small>
+                                        <strong>{{ member.email }}</strong>
+                                    </div>
+                                    {% if member.phone %}
+                                    <div>
+                                        <small class="text-muted d-block">Phone</small>
+                                        <strong>{{ member.phone }}</strong>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="about-card h-100">
+                                    <h4><i class="fas fa-quote-left"></i>About</h4>
+                                    <p class="text-muted">{{ member.summary or 'No summary provided.' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if session.guest_id or session.get('_user_id') %}
+                        <div class="text-center mb-4">
+                            <a href="{{ url_for('upload_photo', member_id=member.id) }}" class="btn btn-primary">
+                                <i class="fas fa-camera me-2"></i>Upload Photo
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <h4 class="mb-3"><i class="fas fa-images text-gradient me-2"></i>Photos</h4>
+                        {% if photos and photos|length > 0 %}
+                        <div class="row stagger-children">
+                            {% for photo in photos %}
+                            <div class="col-md-3 mb-3">
+                                <div class="card gallery-card">
+                                    <img src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}"
+                                         alt="{{ photo.caption or 'Photo' }}"
+                                         style="height:180px; object-fit:cover; cursor:pointer;"
+                                         class="lightbox-img"
+                                         data-src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}"
+                                         data-caption="{{ photo.caption or '' }}">
+                                    <div class="card-body p-2">
+                                        <small class="text-muted">{{ photo.caption or '' }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-camera" style="font-size: 60px; color: var(--primary); opacity: 0.3;"></i>
+                            <p class="text-muted mt-3">No photos yet for this member.</p>
+                        </div>
+                        {% endif %}
+
+                        <h4 class="mb-3 mt-4"><i class="fas fa-video text-gradient me-2"></i>Videos</h4>
+                        {% if videos and videos|length > 0 %}
+                        <div class="row stagger-children">
+                            {% for video in videos %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card gallery-card">
+                                    <div style="position:relative; background:#000; height:180px; display:flex; align-items:center; justify-content:center;">
+                                        <video class="profile-video" src="{{ url_for('static', filename='uploads/' ~ video.filename) }}"
+                                               style="width:100%; height:180px; object-fit:cover;" muted playsinline
+                                               data-src="{{ url_for('static', filename='uploads/' ~ video.filename) }}"></video>
+                                        <button class="play-btn" onclick="togglePlay(this)" style="position:absolute; background:rgba(0,0,0,0.55); border:none; border-radius:50%; width:48px; height:48px; color:#fff; font-size:1.3rem; cursor:pointer;">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <button onclick="openVideoOverlay('{{ url_for('static', filename='uploads/' ~ video.filename) }}')"
+                                                style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.55); border:none; border-radius:4px; color:#fff; padding:4px 8px; cursor:pointer;">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <small class="text-muted">{{ video.caption or '' }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-video" style="font-size: 60px; color: var(--primary); opacity: 0.3;"></i>
+                            <p class="text-muted mt-3">No videos yet for this member.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Photo Lightbox -->
+<div id="lightboxModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+    <button onclick="closeLightbox()" style="position:absolute; top:18px; right:24px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer;">&times;</button>
+    <img id="lightboxImg" src="" alt="" style="max-width:95vw; max-height:85vh; border-radius:8px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
+    <p id="lightboxCaption" style="color:#ddd; margin-top:12px; font-size:1rem;"></p>
+</div>
+
+<!-- Video Overlay -->
+<div id="videoOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+    <button onclick="closeVideoOverlay()" style="position:absolute; top:18px; right:24px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer;">&times;</button>
+    <video id="overlayVideo" src="" controls autoplay style="max-width:95vw; max-height:85vh; border-radius:8px;"></video>
+    <button id="muteBtn" onclick="toggleMute()" style="margin-top:12px; background:rgba(255,255,255,0.15); border:none; color:#fff; padding:8px 20px; border-radius:20px; cursor:pointer;">
+        <i class="fas fa-volume-mute"></i> Unmute
+    </button>
+</div>
+
+<script>
+document.querySelectorAll('.lightbox-img').forEach(img => {
+    img.addEventListener('click', function() {
+        document.getElementById('lightboxImg').src = this.dataset.src;
+        document.getElementById('lightboxCaption').textContent = this.dataset.caption;
+        document.getElementById('lightboxModal').style.display = 'flex';
+    });
+});
+function closeLightbox() { document.getElementById('lightboxModal').style.display = 'none'; }
+document.getElementById('lightboxModal').addEventListener('click', function(e) { if(e.target===this) closeLightbox(); });
+
+function togglePlay(btn) {
+    const video = btn.previousElementSibling;
+    if (video.paused) { video.play(); btn.innerHTML = '<i class="fas fa-pause"></i>'; }
+    else { video.pause(); btn.innerHTML = '<i class="fas fa-play"></i>'; }
+}
+function openVideoOverlay(src) {
+    const v = document.getElementById('overlayVideo');
+    v.src = src; v.muted = true; v.play();
+    document.getElementById('muteBtn').innerHTML = '<i class="fas fa-volume-mute"></i> Unmute';
+    document.getElementById('videoOverlay').style.display = 'flex';
+}
+function closeVideoOverlay() {
+    const v = document.getElementById('overlayVideo');
+    v.pause(); v.src = '';
+    document.getElementById('videoOverlay').style.display = 'none';
+}
+function toggleMute() {
+    const v = document.getElementById('overlayVideo');
+    v.muted = !v.muted;
+    document.getElementById('muteBtn').innerHTML = v.muted ? '<i class="fas fa-volume-mute"></i> Unmute' : '<i class="fas fa-volume-up"></i> Mute';
+}
+document.getElementById('videoOverlay').addEventListener('click', function(e) { if(e.target===this) closeVideoOverlay(); });
+</script>
+{% endblock %}

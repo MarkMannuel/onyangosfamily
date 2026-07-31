@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="section-title animate-fadeIn">
+                    <i class="fas fa-info-circle text-gradient me-2"></i>About Our Family
+                </h1>
+                
+                <div class="about-card mb-4 animate-slideUp">
+                    <h4><i class="fas fa-history"></i>Our History</h4>
+                    {% for item in family_history %}
+                    <p class="text-muted">{{ item }}</p>
+                    {% endfor %}
+                </div>
+                
+                <div class="about-card mb-4 animate-slideUp" style="animation-delay: 0.15s;">
+                    <h4><i class="fas fa-heart"></i>Our Values</h4>
+                    <ul class="list-unstyled">
+                        {% for value in family_values %}
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-3"></i>
+                            <span>{{ value }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="about-card animate-slideUp" style="animation-delay: 0.3s;">
+                    <h4><i class="fas fa-users"></i>Join Our Family</h4>
+                    <p class="text-muted">Are you a member of the Onyango family or want to connect with us? Register today and become part of our growing community.</p>
+                    <a href="{{ url_for('register_member') }}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Register Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

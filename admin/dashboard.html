@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Onyango Family</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 0;
+            position: sticky;
+            top: 0;
+        }
+        .sidebar-brand {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-brand h4 {
+            color: white;
+            font-weight: 700;
+            margin: 0;
+        }
+        .sidebar-brand h4 i { color: #f39c12; margin-right: 10px; }
+        .sidebar-brand small {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+        .sidebar-nav { padding: 20px 0; }
+        .sidebar-nav .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 12px 25px;
+            margin: 3px 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .sidebar-nav .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .sidebar-nav .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        .sidebar-nav .nav-link i { width: 25px; margin-right: 10px; }
+        .sidebar-nav .nav-link .badge {
+            float: right;
+            background: #f39c12;
+            color: #1a1a2e;
+            font-weight: 600;
+            padding: 3px 8px;
+        }
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        .sidebar-footer .user-info { color: white; }
+        .sidebar-footer .user-info i {
+            font-size: 32px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .sidebar-footer .user-info .username { font-weight: 600; }
+        .sidebar-footer .user-info .email {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+        .sidebar-footer .logout-link {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .sidebar-footer .logout-link:hover { color: white; }
+        .main-content { padding: 30px; }
+        .page-header { margin-bottom: 30px; }
+        .page-header h2 {
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .page-header h2 i { color: #667eea; margin-right: 10px; }
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .stat-card .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .stat-card .stat-icon.purple {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+        .stat-card .stat-icon.orange {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+        .stat-card .stat-icon.green {
+            background: rgba(46, 204, 113, 0.1);
+            color: #2ecc71;
+        }
+        .stat-card .stat-icon.blue {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        .stat-card .stat-icon.red {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        .stat-card .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 5px 0;
+        }
+        .stat-card .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #f0f2f5;
+            padding: 20px 25px;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: 600;
+        }
+        .card-header i { margin-right: 10px; color: #667eea; }
+        .card-body { padding: 25px; }
+        .pending-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #f39c12;
+            transition: all 0.3s;
+        }
+        .pending-item:hover { background: #e9ecef; }
+        .pending-item .item-title {
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 3px;
+        }
+        .pending-item .item-meta {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .pending-item .item-actions { display: flex; gap: 5px; }
+        .pending-item .item-actions .btn {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+        .invitation-code {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #667eea;
+            display: inline-block;
+            letter-spacing: 1px;
+        }
+        @media (max-width: 768px) {
+            .sidebar { min-height: auto; position: relative; }
+            .main-content { padding: 20px 15px; }
+            .stat-card .stat-number { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-lg-2 px-0 sidebar">
+                <div class="sidebar-brand">
+                    <h4><i class="fas fa-users"></i>Family Admin</h4>
+                    <small>Onyango Family Portal</small>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="{{ url_for('admin_dashboard') }}" class="nav-link active">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_members') }}" class="nav-link">
+                        <i class="fas fa-user-friends"></i> Members
+                        {% if pending_members_count > 0 %}
+                            <span class="badge">{{ pending_members_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin_posts') }}" class="nav-link">
+                        <i class="fas fa-newspaper"></i> Posts
+                        {% if pending_posts_count > 0 %}
+                            <span class="badge">{{ pending_posts_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin_invitations') }}" class="nav-link">
+                        <i class="fas fa-ticket-alt"></i> Invitations
+                        <span class="badge">{{ total_invitations }}</span>
+                    </a>
+                    <a href="{{ url_for('home') }}" class="nav-link" target="_blank">
+                        <i class="fas fa-eye"></i> View Site
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="user-info d-flex align-items-center">
+                        <i class="fas fa-user-circle"></i>
+                        <div>
+                            <div class="username">{{ current_user.username }}</div>
+                            <div class="email">{{ current_user.email }}</div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('admin_logout') }}" class="logout-link">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <h2><i class="fas fa-tachometer-alt"></i>Dashboard</h2>
+                    <div>
+                        <span class="badge bg-success me-2 p-2">
+                            <i class="fas fa-check-circle me-1"></i> {{ approved_members }} Members
+                        </span>
+                        <span class="badge bg-info p-2">
+                            <i class="fas fa-check-circle me-1"></i> {{ approved_posts }} Posts
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon orange">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-number">{{ pending_members_count }}</div>
+                            <div class="stat-label">Pending Members</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-number">{{ pending_posts_count }}</div>
+                            <div class="stat-label">Pending Posts</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-number">{{ total_members }}</div>
+                            <div class="stat-label">Total Members</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon purple">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div class="stat-number">{{ total_invitations }}</div>
+                            <div class="stat-label">Total Invitations</div>
+                            <small class="text-muted">{{ used_invitations }} used</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-user-plus"></i> Pending Members
+                            </div>
+                            <div class="card-body">
+                                {% if pending_members %}
+                                    {% for member in pending_members %}
+                                        <div class="pending-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="item-title">{{ member.name }}</div>
+                                                    <div class="item-meta">{{ member.email }}</div>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <a href="{{ url_for('approve_member', member_id=member.id) }}" 
+                                                       class="btn btn-success btn-sm" title="Approve">
+                                                        <i class="fas fa-check"></i>
+                                                    </a>
+                                                    <a href="{{ url_for('reject_member', member_id=member.id) }}" 
+                                                       class="btn btn-danger btn-sm" title="Reject">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted text-center">No pending members</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-pen"></i> Pending Posts
+                            </div>
+                            <div class="card-body">
+                                {% if pending_posts %}
+                                    {% for post in pending_posts %}
+                                        <div class="pending-item">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="item-title">{{ post.title }}</div>
+                                                    <div class="item-meta">by {{ post.author or 'Anonymous' }}</div>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <a href="{{ url_for('approve_post', post_id=post.id) }}" 
+                                                       class="btn btn-success btn-sm" title="Approve">
+                                                        <i class="fas fa-check"></i>
+                                                    </a>
+                                                    <a href="{{ url_for('reject_post', post_id=post.id) }}" 
+                                                       class="btn btn-danger btn-sm" title="Reject">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted text-center">No pending posts</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-ticket-alt"></i> Recent Invitations
+                            </div>
+                            <div class="card-body">
+                                {% if recent_invitations %}
+                                    {% for inv in recent_invitations %}
+                                        <div class="pending-item {% if inv.used %}approved{% endif %}">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <div class="item-title">
+                                                        <span class="invitation-code">{{ inv.code }}</span>
+                                                    </div>
+                                                    <div class="item-meta">
+                                                        {% if inv.email %}{{ inv.email }} • {% endif %}
+                                                        {% if inv.used %}
+                                                            <span class="badge bg-success">Used</span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning">Active</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">{{ inv.created_at.strftime('%Y-%m-%d') }}</small>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted text-center">No invitations created yet</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

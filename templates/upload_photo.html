@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Media - {{ member.name }}{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0 animate-fadeIn">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <div style="width: 80px; height: 80px; background: var(--gradient-card); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <i class="fas fa-photo-video text-gradient" style="font-size: 36px;"></i>
+                            </div>
+                            <h3 class="mt-3 mb-2">Upload Media</h3>
+                            <p class="text-muted">for {{ member.name }}</p>
+                        </div>
+
+                        <!-- Tabs -->
+                        <ul class="nav nav-pills mb-4 justify-content-center" id="uploadTabs">
+                            <li class="nav-item">
+                                <button class="nav-link active" id="photoTab" onclick="switchTab('photo')">
+                                    <i class="fas fa-image me-1"></i>Photo
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="videoTab" onclick="switchTab('video')">
+                                    <i class="fas fa-video me-1"></i>Video
+                                </button>
+                            </li>
+                        </ul>
+
+                        <form method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="upload_type" id="uploadType" value="photo">
+
+                            <!-- Photo Section -->
+                            <div id="photoSection">
+                                <div class="mb-4">
+                                    <label class="form-label">Choose Image *</label>
+                                    <input type="file" name="photo" id="photoInput" class="form-control" accept="image/*">
+                                    <small class="text-muted">Supported: PNG, JPG, JPEG, GIF</small>
+                                </div>
+                            </div>
+
+                            <!-- Video Section -->
+                            <div id="videoSection" style="display:none;">
+                                <div class="mb-4">
+                                    <label class="form-label">Choose Video *</label>
+                                    <input type="file" name="video" id="videoInput" class="form-control" accept="video/*">
+                                    <small class="text-muted">Supported: MP4, WebM, OGG, AVI, MOV</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Caption (optional)</label>
+                                <input type="text" name="caption" class="form-control" placeholder="Add a caption">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="fas fa-upload me-2"></i>Upload
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function switchTab(type) {
+    document.getElementById('uploadType').value = type;
+    document.getElementById('photoSection').style.display = type === 'photo' ? '' : 'none';
+    document.getElementById('videoSection').style.display = type === 'video' ? '' : 'none';
+    document.getElementById('photoTab').classList.toggle('active', type === 'photo');
+    document.getElementById('videoTab').classList.toggle('active', type === 'video');
+    // Reset required
+    document.getElementById('photoInput').required = type === 'photo';
+    document.getElementById('videoInput').required = type === 'video';
+}
+switchTab('photo');
+</script>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Family Tree - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <h1 class="section-title animate-fadeIn">
+            <i class="fas fa-sitemap text-gradient me-2"></i>Family Tree
+        </h1>
+        <p class="section-subtitle">Our family heritage, connecting generations past, present, and future.</p>
+        
+        {% if tree_nodes %}
+        <div class="text-center mb-5">
+            <!-- Family Tree Visual Structure -->
+            {% set root = tree_nodes|selectattr('parent_id', 'none')|first %}
+            {% if root %}
+            <div class="tree-container">
+                <!-- Root -->
+                <div class="tree-root">
+                    <div class="member-node root-node">
+                        <div class="member-avatar" style="background: linear-gradient(135deg, #f39c12, #e74c3c);">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <h5 class="mb-1">{{ root.name }}</h5>
+                        <small class="text-muted">{{ root.relation or 'Root Ancestor' }}</small>
+                    </div>
+                    
+                    {% set level1 = tree_nodes|selectattr('parent_id', 'equalto', root.id)|list %}
+                    {% if level1 %}
+                    <div class="tree-line"></div>
+                    <div class="tree-children">
+                        {% for node in level1 %}
+                        <div class="member-node">
+                            <div class="member-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h6 class="mb-1">{{ node.name }}</h6>
+                            <small class="text-muted">{{ node.relation or 'Child' }}</small>
+                            
+                            {% set level2 = tree_nodes|selectattr('parent_id', 'equalto', node.id)|list %}
+                            {% if level2 %}
+                            <div class="tree-line"></div>
+                            <div class="tree-children">
+                                {% for child in level2 %}
+                                <div class="member-node">
+                                    <div class="member-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2); width: 40px; height: 40px; font-size: 16px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <h6 class="mb-1" style="font-size: 14px;">{{ child.name }}</h6>
+                                    <small class="text-muted">{{ child.relation or 'Grandchild' }}</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- List View -->
+        <div class="row stagger-children">
+            {% set root = tree_nodes|selectattr('parent_id', 'none')|first %}
+            {% if root %}
+            <div class="col-md-4 mb-4">
+                <div class="tree-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #f39c12, #e74c3c);">
+                        <h5 class="mb-0 text-white"><i class="fas fa-crown me-2"></i>Root Ancestor</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-user-circle"></i> {{ root.name }} <span class="badge bg-warning text-dark">{{ root.relation or 'Root' }}</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            {% set level1 = tree_nodes|selectattr('parent_id', 'equalto', root.id)|list %}
+            {% if level1 %}
+            <div class="col-md-4 mb-4">
+                <div class="tree-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <h5 class="mb-0 text-white"><i class="fas fa-users me-2"></i>Children</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            {% for node in level1 %}
+                            <li><i class="fas fa-user-circle"></i> {{ node.name }} <span class="badge bg-primary">{{ node.relation or 'Child' }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% set grandchildren = [] %}
+            {% for node in level1 %}
+                {% set kids = tree_nodes|selectattr('parent_id', 'equalto', node.id)|list %}
+                {% for k in kids %}
+                    {% set _ = grandchildren.append(k) %}
+                {% endfor %}
+            {% endfor %}
+            {% if grandchildren %}
+            <div class="col-md-4 mb-4">
+                <div class="tree-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #06b6d4, #10b981);">
+                        <h5 class="mb-0 text-white"><i class="fas fa-child me-2"></i>Grandchildren</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            {% for node in grandchildren %}
+                            <li><i class="fas fa-user-circle"></i> {{ node.name }} <span class="badge bg-info">{{ node.relation or 'Grandchild' }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="text-center py-5 animate-fadeIn">
+            <i class="fas fa-sitemap text-muted" style="font-size: 80px;"></i>
+            <h4 class="mt-4 text-muted">Family tree is being built</h4>
+            <p class="text-muted mb-4">Our family tree is currently being populated. Check back soon to see your family connections!</p>
+            <a href="{{ url_for('register_member') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Add Your Branch
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.tree-container {
+    padding: 20px;
+    overflow-x: auto;
+}
+.tree-root {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.member-node {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 30px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 2px solid #e9ecef;
+    transition: all 0.3s;
+    position: relative;
+}
+.member-node:hover {
+    border-color: #667eea;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(102,126,234,0.15);
+}
+.root-node {
+    border-color: #f39c12;
+    background: linear-gradient(135deg, #fff9e6, #fff3cd);
+    min-width: 200px;
+}
+.member-avatar {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    color: white;
+    font-size: 24px;
+}
+.tree-line {
+    width: 2px;
+    height: 30px;
+    background: #667eea;
+    margin: 0 auto;
+}
+.tree-children {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.tree-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+    height: 100%;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.tree-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+.tree-card .card-body {
+    padding: 20px;
+}
+.tree-card .card-body ul li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f2f5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.tree-card .card-body ul li:last-child {
+    border-bottom: none;
+}
+.tree-card .card-body ul li i {
+    color: #667eea;
+    font-size: 18px;
+}
+</style>
+{% endblock %}
