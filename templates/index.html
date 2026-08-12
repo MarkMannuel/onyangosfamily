@@ -3,38 +3,23 @@
 {% block title %}Home - Onyango Family{% endblock %}
 
 {% block content %}
-<!-- ===== LIVE BACKGROUND SLIDER (crossfade + Ken Burns zoom) ===== -->
-<section class="hero-slider-section">
-    <div class="hero-slider">
-        {% for slide in hero_backgrounds %}
-        {% set slide_url = slide.image if slide.image.startswith('http') else url_for('serve_background_image', filename=slide.image) %}
-<div class="hero-slide {% if loop.first %}active{% endif %}"
-             style="background: linear-gradient(to bottom, rgba(15,23,42,0.30) 0%, rgba(15,23,42,0.55) 40%, rgba(10,16,32,0.85) 100%), url('{{ slide_url }}') center 25%/cover;">
-            <div class="container hero-content-center">
-                <span class="hero-badge animate-fadeInLeft">
-                    <i class="fas {{ slide.icon }} me-2 text-gradient"></i>{{ slide.badge }}
-                </span>
-                <h1 class="animate-fadeInLeft">{{ slide.title }}</h1>
-                <p class="hero-lead animate-fadeInLeft">{{ slide.text }}</p>
-                <div class="d-flex flex-wrap gap-3 justify-content-lg-start justify-content-center">
-                    <a href="{{ url_for('register_member') }}" class="btn-hero-primary">
-                        <i class="fas fa-user-plus me-2"></i>Join Our Family
-                    </a>
-                    <a href="{{ url_for('stories') }}" class="btn-hero-secondary">
-                        <i class="fas fa-book-open me-2"></i>Read Our Stories
-                    </a>
-                </div>
-            </div>
+<!-- ===== HERO SECTION WITH SINGLE FAMILY BACKGROUND IMAGE ===== -->
+<section class="hero-section" style="background: linear-gradient(to bottom, rgba(15,23,42,0.35) 0%, rgba(15,23,42,0.65) 50%, rgba(10,16,32,0.85) 100%), url('{{ url_for('static', filename='uploads/member_2_20260714080049_family.jpg') }}') center/cover no-repeat;">
+    <div class="container hero-content-center">
+        <span class="hero-badge animate-fadeInLeft">
+            <i class="fas fa-heart me-2 text-gradient"></i>Building our legacy together
+        </span>
+        <h1 class="animate-fadeInLeft">Welcome to the Onyango Family</h1>
+        <p class="hero-lead animate-fadeInLeft">A community bound by love, tradition, and shared heritage. Explore the family tree, share stories, and preserve memories together.</p>
+        <div class="d-flex flex-wrap gap-3 justify-content-lg-start justify-content-center">
+            <a href="{{ url_for('register_member') }}" class="btn-hero-primary">
+                <i class="fas fa-user-plus me-2"></i>Join Our Family
+            </a>
+            <a href="{{ url_for('stories') }}" class="btn-hero-secondary">
+                <i class="fas fa-book-open me-2"></i>Read Our Stories
+            </a>
         </div>
-        {% endfor %}
     </div>
-    <div class="hero-slider-dots">
-        {% for slide in hero_backgrounds %}
-        <span class="dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
-        {% endfor %}
-    </div>
-    <button class="hero-arrow prev" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
-    <button class="hero-arrow next" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
 </section>
 
 <!-- Family Members -->
