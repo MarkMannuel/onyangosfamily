@@ -3,29 +3,38 @@
 {% block title %}Home - Onyango Family{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 hero-content animate-fadeInLeft">
-                <h1>Welcome to the<br><span class="text-gradient">Onyango Family</span></h1>
-                <p class="hero-subtitle">A community bound by love, tradition, and shared heritage. Join us in celebrating our rich history and building a brighter future together.</p>
-                <div class="d-flex flex-wrap gap-3">
+<!-- ===== LIVE BACKGROUND SLIDER (crossfade + Ken Burns zoom) ===== -->
+<section class="hero-slider-section">
+    <div class="hero-slider">
+        {% for slide in hero_backgrounds %}
+        {% set slide_url = slide.image if slide.image.startswith('http') else url_for('serve_background_image', filename=slide.image) %}
+<div class="hero-slide {% if loop.first %}active{% endif %}"
+             style="background: linear-gradient(to bottom, rgba(15,23,42,0.30) 0%, rgba(15,23,42,0.55) 40%, rgba(10,16,32,0.85) 100%), url('{{ slide_url }}') center 25%/cover;">
+            <div class="container hero-content-center">
+                <span class="hero-badge animate-fadeInLeft">
+                    <i class="fas {{ slide.icon }} me-2 text-gradient"></i>{{ slide.badge }}
+                </span>
+                <h1 class="animate-fadeInLeft">{{ slide.title }}</h1>
+                <p class="hero-lead animate-fadeInLeft">{{ slide.text }}</p>
+                <div class="d-flex flex-wrap gap-3 justify-content-lg-start justify-content-center">
                     <a href="{{ url_for('register_member') }}" class="btn-hero-primary">
                         <i class="fas fa-user-plus me-2"></i>Join Our Family
                     </a>
                     <a href="{{ url_for('stories') }}" class="btn-hero-secondary">
-                        <i class="fas fa-book me-2"></i>Read Stories
+                        <i class="fas fa-book-open me-2"></i>Read Our Stories
                     </a>
                 </div>
             </div>
-            <div class="col-lg-6 text-center hero-image animate-fadeInRight">
-                <div class="floating-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-            </div>
         </div>
+        {% endfor %}
     </div>
+    <div class="hero-slider-dots">
+        {% for slide in hero_backgrounds %}
+        <span class="dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
+        {% endfor %}
+    </div>
+    <button class="hero-arrow prev" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+    <button class="hero-arrow next" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
 </section>
 
 <!-- Family Members -->
@@ -50,11 +59,6 @@
                     <p class="member-role">{{ member.role }}</p>
                     <p class="small text-muted">{{ member.summary[:80] if member.summary else '' }}{% if member.summary and member.summary|length > 80 %}...{% endif %}</p>
                     <div class="mt-3 d-flex gap-2 justify-content-center">
-                        {% if session.guest_id or session.get('_user_id') %}
-                        <a href="{{ url_for('upload_photo', member_id=member.id) }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-camera me-1"></i>Photo
-                        </a>
-                        {% endif %}
                         <a href="{{ url_for('member_profile', member_id=member.id) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-user me-1"></i>Profile
                         </a>
@@ -81,7 +85,11 @@
             <div class="col-md-4 mb-4">
                 <div class="story-card">
                     <div class="story-image">
+                        {% if story.image_url %}
+                        <img src="{{ story.image_url }}" alt="{{ story.title }}">
+                        {% else %}
                         <i class="fas fa-book-open"></i>
+                        {% endif %}
                     </div>
                     <div class="story-body">
                         <h5 class="story-title">{{ story.title }}</h5>
@@ -93,7 +101,7 @@
                     </div>
                     <div class="px-3 pb-3 d-flex gap-2">
                         <button class="btn btn-outline-secondary btn-sm flex-fill"
-                                onclick="openStory('{{ story.title|replace("'","\\'")|replace('"','\\"') }}','{{ story.body|replace("'","\\'")|replace('"','\\"')|replace('\n','\\n') }}','{{ story.author or 'Anonymous' }}','{{ story.created_at.strftime('%b %d, %Y') }}')">
+                                onclick="openStory('{{ story.title|replace("\'","\\'")|replace('"','\\"') }}','{{ story.body|replace("\'","\\'")|replace('"','\\"')|replace('\n','\\n') }}','{{ story.author or 'Anonymous' }}','{{ story.created_at.strftime('%b %d, %Y') }}')">
                             <i class="fas fa-expand me-1"></i>Expand
                         </button>
                         <a href="{{ url_for('story_detail', post_id=story.id) }}" class="btn btn-outline-primary btn-sm flex-fill">
@@ -184,6 +192,83 @@
         <div class="text-center mt-4">
             <a href="{{ url_for('gallery') }}" class="btn btn-outline-primary">
                 <i class="fas fa-video me-2"></i>View Full Gallery
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Upcoming Events -->
+{% if events and events|length > 0 %}
+<section class="section-padding" style="background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%);">
+    <div class="container">
+        <h2 class="section-title animate-fadeIn">Upcoming Events</h2>
+        <p class="section-subtitle animate-fadeIn">Join our upcoming family gatherings and celebrations</p>
+        <div class="row stagger-children">
+            {% for event in events %}
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card border-0 shadow-sm h-100 event-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="event-date-badge">
+                                <span class="event-day">{{ event.event_date.strftime('%d') }}</span>
+                                <span class="event-month">{{ event.event_date.strftime('%b') }}</span>
+                            </div>
+                            <div class="event-info flex-fill">
+                                <h6 class="mb-1">{{ event.title }}</h6>
+                                <small class="text-muted">{{ event.event_type|capitalize }}</small>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-2 small">{{ event.description or 'A special family gathering.' }}</p>
+                        {% if event.location %}
+                        <p class="mb-1 small"><i class="fas fa-map-marker-alt me-1 text-primary"></i>{{ event.location }}</p>
+                        {% endif %}
+                        <p class="mb-0 small"><i class="fas fa-clock me-1 text-primary"></i>{{ event.event_date.strftime('%I:%M %p') }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('events_page') }}" class="btn btn-outline-primary">
+                <i class="fas fa-calendar-alt me-2"></i>View All Events
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Family Best Moments -->
+{% if past_media and past_media|length > 0 %}
+<section class="section-padding" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);">
+    <div class="container">
+        <h2 class="section-title animate-fadeIn" style="color:#fff;">Family Best Moments</h2>
+        <p class="section-subtitle animate-fadeIn">Highlights from our cherished past gatherings and celebrations</p>
+        <div class="row stagger-children">
+            {% for item in past_media %}
+            <div class="col-md-3 col-6 mb-4">
+                <div class="card border-0 shadow-sm overflow-hidden h-100">
+                    {% if item.media_type == 'video' %}
+                    <video style="width:100%; height:200px; object-fit:cover; background:#000;" muted playsinline preload="metadata" controls>
+                        <source src="{{ url_for('static', filename='uploads/' ~ item.filename) }}">
+                    </video>
+                    {% else %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ item.filename) }}"
+                         alt="{{ item.title }}"
+                         style="height:200px; object-fit:cover; width:100%;">
+                    {% endif %}
+                    <div class="card-body p-3">
+                        <h6 class="mb-1 text-truncate">{{ item.title }}</h6>
+                        {% if item.caption %}<p class="text-muted small mb-1">{{ item.caption }}</p>{% endif %}
+                        {% if item.event_date %}<small class="text-muted"><i class="fas fa-calendar me-1"></i>{{ item.event_date }}</small>{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('events_page') }}" class="btn btn-outline-light">
+                <i class="fas fa-images me-2"></i>View Past Events Gallery
             </a>
         </div>
     </div>
@@ -292,5 +377,68 @@ function closeStory() {
 document.getElementById('storyOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeStory();
 });
+
+// ===== HERO SLIDER (crossfade + arrows + dots + autoplay) =====
+(function () {
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.hero-slider-dots .dot');
+    if (!slides.length) return;
+    let current = 0;
+    const total = slides.length;
+    const interval = 6500;
+
+    function goTo(index) {
+        if (index < 0) index = total - 1;
+        if (index > total - 1) index = 0;
+        slides.forEach(function (s, i) { s.classList.toggle('active', i === index); });
+        dots.forEach(function (d, i) { d.classList.toggle('active', i === index); });
+        current = index;
+    }
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    const nextBtn = document.querySelector('.hero-arrow.next');
+    const prevBtn = document.querySelector('.hero-arrow.prev');
+    if (nextBtn) nextBtn.addEventListener('click', function () { next(); restart(); });
+    if (prevBtn) prevBtn.addEventListener('click', function () { prev(); restart(); });
+    dots.forEach(function (d) {
+        d.addEventListener('click', function () { goTo(parseInt(d.dataset.index, 10)); restart(); });
+    });
+
+    let timer = setInterval(next, interval);
+    function restart() {
+        clearInterval(timer);
+        timer = setInterval(next, interval);
+    }
+})();
+
+// ===== STAT COUNTERS =====
+(function () {
+    const counters = document.querySelectorAll('.stat-number');
+    if (!counters.length) return;
+
+    function animate(counter) {
+        const target = parseInt(counter.dataset.target, 10);
+        const duration = 1800;
+        const start = performance.now();
+        function frame(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            counter.textContent = Math.floor(eased * target);
+            if (progress < 1) requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+    }
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                animate(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    counters.forEach(function (c) { observer.observe(c); });
+})();
 </script>
 {% endblock %}

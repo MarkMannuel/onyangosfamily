@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <h1 class="section-title mb-4"><i class="fas fa-search text-gradient me-2"></i>Search Results</h1>
+        <form method="get" action="{{ url_for('search_page') }}" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Search members, stories, events and albums">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
+
+        {% if query %}
+        <h4>Members</h4>
+        <ul>
+            {% for member in members %}
+            <li><a href="{{ url_for('member_profile', member_id=member.id) }}">{{ member.name }}</a> — {{ member.role or 'Family Member' }}</li>
+            {% else %}<li class="text-muted">No matching members.</li>{% endfor %}
+        </ul>
+
+        <h4 class="mt-4">Stories</h4>
+        <ul>
+            {% for story in stories %}
+            <li><a href="{{ url_for('story_detail', post_id=story.id) }}">{{ story.title }}</a></li>
+            {% else %}<li class="text-muted">No matching stories.</li>{% endfor %}
+        </ul>
+
+        <h4 class="mt-4">Events</h4>
+        <ul>
+            {% for event in events %}
+            <li>{{ event.title }} — {{ event.location or 'Family event' }}</li>
+            {% else %}<li class="text-muted">No matching events.</li>{% endfor %}
+        </ul>
+
+        <h4 class="mt-4">Albums</h4>
+        <ul>
+            {% for album in albums %}
+            <li><a href="{{ url_for('album_detail', album_id=album.id) }}">{{ album.name }}</a></li>
+            {% else %}<li class="text-muted">No matching albums.</li>{% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">Enter a search term to discover family content.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

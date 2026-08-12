@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Messages - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <h1 class="section-title mb-4"><i class="fas fa-envelope text-gradient me-2"></i>Messages</h1>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Send a Message</h5>
+                <form method="post">
+                    <select name="receiver_id" class="form-control mb-3" required>
+                        <option value="">Choose a family member</option>
+                        {% for recipient in recipients %}
+                        <option value="{{ recipient.id }}">{{ recipient.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" name="subject" class="form-control mb-3" placeholder="Subject" required>
+                    <textarea name="body" class="form-control mb-3" rows="4" placeholder="Write your message" required></textarea>
+                    <button class="btn btn-primary" type="submit">Send</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Conversation History</h5>
+                {% for message in messages %}
+                <div class="border rounded p-3 mb-3">
+                    <strong>{{ message.subject }}</strong>
+                    <p class="mb-1 text-muted small">{{ message.created_at.strftime('%b %d, %Y %H:%M') }}</p>
+                    <p class="mb-0">{{ message.body }}</p>
+                </div>
+                {% else %}
+                <p class="text-muted">No messages yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -17,7 +17,7 @@
                             <p class="text-muted">Share memories, experiences, and stories with the family</p>
                         </div>
                         
-                        <form method="POST">
+                        <form method="POST" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label class="form-label">Story Title *</label>
                                 <input type="text" name="title" class="form-control" required placeholder="Give your story a title">
@@ -41,6 +41,17 @@
                                 <textarea name="body" class="form-control" rows="6" required placeholder="Write your story here..."></textarea>
                             </div>
                             <div class="mb-4">
+                                <label class="form-label">Upload Story Image (optional)</label>
+                                <input type="file" id="storyImageInput" name="story_image" class="form-control" accept="image/*">
+                                <small class="form-text text-muted">Choose an image from your device. You can also provide an external image URL below.</small>
+                            </div>
+                            <div id="storyImagePreview" class="mb-4" style="display:none;">
+                                <label class="form-label">Image Preview</label>
+                                <div class="border rounded overflow-hidden" style="max-height: 280px;">
+                                    <img id="storyPreviewImg" src="" alt="Story image preview" style="width:100%; object-fit:cover; display:block;">
+                                </div>
+                            </div>
+                            <div class="mb-4">
                                 <label class="form-label">Image URL (optional)</label>
                                 <input type="url" name="image_url" class="form-control" placeholder="https://example.com/image.jpg">
                             </div>
@@ -54,6 +65,25 @@
                                 Your story will be reviewed before being published.
                             </div>
                         </div>
+                        <script>
+                            document.getElementById('storyImageInput').addEventListener('change', function(event) {
+                                const file = event.target.files[0];
+                                const previewContainer = document.getElementById('storyImagePreview');
+                                const previewImg = document.getElementById('storyPreviewImg');
+
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = function(e) {
+                                        previewImg.src = e.target.result;
+                                        previewContainer.style.display = 'block';
+                                    };
+                                    reader.readAsDataURL(file);
+                                } else {
+                                    previewImg.src = '';
+                                    previewContainer.style.display = 'none';
+                                }
+                            });
+                        </script>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit {{ media_type|capitalize }}{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0 animate-fadeIn">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <div style="width: 80px; height: 80px; background: var(--gradient-card); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <i class="fas fa-edit text-gradient" style="font-size: 36px;"></i>
+                            </div>
+                            <h3 class="mt-3 mb-2">Edit {{ media_type|capitalize }}</h3>
+                            <p class="text-muted">Update the caption for your {{ media_type }}.</p>
+                        </div>
+
+                        <form method="post">
+                            <div class="mb-4">
+                                <label class="form-label">Caption</label>
+                                <input type="text" name="caption" class="form-control" value="{{ media.caption or '' }}" placeholder="Enter a caption">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                Save Changes
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('member_dashboard') }}" class="text-muted">Back to Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

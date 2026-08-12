@@ -1,0 +1,10 @@
+PLACEHOLDER - Background Image
+
+Replace this file with your own background image.
+
+To add a background image:
+1. Delete this placeholder.txt file.
+2. Drop your image file(s) into this images/ folder (e.g. background_1.jpg, background_2.png).
+3. Reference it in your CSS with:  url('/images/your-filename.jpg')
+
+Supported formats: JPG, PNG, WebP, GIF.

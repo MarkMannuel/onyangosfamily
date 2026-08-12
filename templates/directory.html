@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Family Directory - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <h1 class="section-title mb-4"><i class="fas fa-address-book text-gradient me-2"></i>Family Directory</h1>
+        <p class="section-subtitle">Browse approved family members and connect with relatives across the family network.</p>
+
+        <!-- Search & Filter Bar -->
+        <div class="row mb-4 g-2">
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="memberSearch" placeholder="🔍 Search members by name or relationship...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="relationFilter">
+                    <option value="all">All Relationships</option>
+                    {% set relations = [] %}
+                    {% for m in members %}
+                        {% if m.relationship and m.relationship not in relations %}
+                            {% set _ = relations.append(m.relationship) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% for r in relations|sort %}
+                    <option value="{{ r }}">{{ r }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="locationFilter">
+                    <option value="all">All Family Units</option>
+                    {% set locations = [] %}
+                    {% for m in members %}
+                        {% if m.relationship and m.relationship not in locations %}
+                            {% set _ = locations.append(m.relationship) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% for l in locations|sort %}
+                    <option value="{{ l }}">{{ l }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="row g-4" id="memberGrid">
+            {% for member in members %}
+            <div class="col-lg-4 col-md-6 member-card-wrapper" 
+                 data-name="{{ member.name|lower }}"
+                 data-relation="{{ member.relationship|lower if member.relationship else '' }}"
+                 data-location="{{ member.relationship|lower if member.relationship else '' }}">
+                <div class="card shadow-sm h-100 card-hover">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if member.profile_picture %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ member.profile_picture) }}" alt="{{ member.name }}" class="rounded-circle me-3" style="width:56px;height:56px;object-fit:cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width:56px;height:56px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-1">{{ member.name }}</h5>
+                                <p class="text-muted mb-0">
+                                    {% if member.relationship %}
+                                    <i class="fas fa-link me-1 text-gradient"></i>{{ member.relationship }}
+                                    {% else %}
+                                    Family Member
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        {% if member.phone %}
+                        <p class="mb-2"><i class="fas fa-phone me-2 text-muted"></i><strong>Phone:</strong> {{ member.phone }}</p>
+                        {% endif %}
+                        {% if member.birthday %}
+                        <p class="mb-2"><i class="fas fa-birthday-cake me-2 text-muted"></i><strong>Birthday:</strong> {{ member.birthday }}</p>
+                        {% endif %}
+                        {% if member.summary %}
+                        <p class="small text-muted mb-3">{{ member.summary[:100] }}{% if member.summary|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('member_profile', member_id=member.id) }}" class="btn btn-outline-primary btn-sm flex-fill">
+                                <i class="fas fa-user me-1"></i>View Profile
+                            </a>
+                            {% if session.member_id %}
+                            <a href="{{ url_for('messages_page') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-envelope"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center py-4">
+                    <i class="fas fa-users me-2"></i>No approved family members are available yet.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if not members %}
+        <div class="text-center mt-5">
+            <a href="{{ url_for('register_member') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Join the Family
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<script>
+// Live search
+document.getElementById('memberSearch').addEventListener('keyup', function() {
+    const query = this.value.toLowerCase();
+    const cards = document.querySelectorAll('.member-card-wrapper');
+    cards.forEach(card => {
+        const name = card.dataset.name;
+        card.style.display = name.includes(query) ? '' : 'none';
+    });
+});
+
+// Relationship filter
+document.getElementById('relationFilter').addEventListener('change', function() {
+    applyFilters();
+});
+
+// Location filter
+document.getElementById('locationFilter').addEventListener('change', function() {
+    applyFilters();
+});
+
+function applyFilters() {
+    const relation = document.getElementById('relationFilter').value;
+    const location = document.getElementById('locationFilter').value;
+    const query = document.getElementById('memberSearch').value.toLowerCase();
+    const cards = document.querySelectorAll('.member-card-wrapper');
+    
+    cards.forEach(card => {
+        const cardRelation = card.dataset.relation || '';
+        const cardLocation = card.dataset.location || '';
+        const cardName = card.dataset.name;
+        
+        let show = true;
+        if (relation !== 'all' && !cardRelation.includes(relation.toLowerCase())) show = false;
+        if (location !== 'all' && !cardLocation.includes(location.toLowerCase())) show = false;
+        if (query && !cardName.includes(query)) show = false;
+        
+        card.style.display = show ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

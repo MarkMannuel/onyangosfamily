@@ -14,7 +14,7 @@
                 <div class="about-card mb-4 animate-slideUp">
                     <h4><i class="fas fa-history"></i>Our History</h4>
                     {% for item in family_history %}
-                    <p class="text-muted">{{ item }}</p>
+                    <p class="text-muted">{{ item|safe }}</p>
                     {% endfor %}
                 </div>
                 

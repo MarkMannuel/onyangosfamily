@@ -9,121 +9,74 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom" id="mainNav">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <i class="fas fa-users"></i>Onyango Family
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <!-- Main Navigation -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">
-                            <i class="fas fa-home"></i>Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about') }}">
-                            <i class="fas fa-info-circle"></i>About
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('family_tree') }}">
-                            <i class="fas fa-sitemap"></i>Family Tree
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('stories') }}">
-                            <i class="fas fa-book"></i>Stories
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('gallery') }}">
-                            <i class="fas fa-images"></i>Gallery
-                        </a>
-                    </li>
-
-                    <!-- Contribute Dropdown (only when logged in) -->
-                    {% if session.member_id or session.guest_id or session.get('_user_id') %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="contributeDropdown" role="button">
-                            <i class="fas fa-plus-circle"></i>Contribute
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="contributeDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('register_member') }}">
-                                <i class="fas fa-user-plus"></i> Register Member
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('submit_story') }}">
-                                <i class="fas fa-pen"></i> Submit Story
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('upload_photo', member_id=1) }}">
-                                <i class="fas fa-camera"></i> Upload Photo
-                            </a></li>
-                        </ul>
-                    </li>
+    <!-- ===== 1. TOP UTILITY HEADER BAR ===== -->
+    <div class="utility-bar">
+        <div class="container d-flex justify-content-between align-items-center flex-wrap py-2">
+            <div class="utility-links d-flex align-items-center gap-3 flex-wrap">
+                <a href="{{ url_for('member_login') }}"><i class="fas fa-user-lock me-1"></i>Member Portal</a>
+                <a href="{{ url_for('directory_page') }}"><i class="fas fa-address-book me-1"></i>Directory</a>
+                <a href="{{ url_for('family_tree') }}"><i class="fas fa-sitemap me-1"></i>Family Tree</a>
+                <a href="{{ url_for('register_member') }}"><i class="fas fa-user-plus me-1"></i>Register / Join</a>
+                <a href="{{ url_for('support_page') }}"><i class="fas fa-headset me-1"></i>Help / Contact Support</a>
+            </div>
+            <div class="utility-auth d-flex align-items-center gap-2">
+                {% if session.member_id or current_user.is_authenticated %}
+                    <a href="{{ url_for('member_dashboard') }}" class="utility-btn utility-btn-success"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+                    {% if session.member_id %}
+                    <a href="{{ url_for('member_logout') }}" class="utility-btn"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+                    {% else %}
+                    <a href="{{ url_for('admin_logout') }}" class="utility-btn"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
                     {% endif %}
-
-                    <!-- User Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button">
-                            <i class="fas fa-user-circle"></i>
-                            {% if session.member_name %}
-                                {{ session.member_name }}
-                            {% elif session.guest_name %}
-                                {{ session.guest_name }}
-                            {% elif current_user.is_authenticated %}
-                                Admin
-                            {% else %}
-                                Login
-                            {% endif %}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            {% if session.member_id %}
-                                <li><a class="dropdown-item" href="{{ url_for('member_dashboard') }}">
-                                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('member_profile', member_id=session.member_id) }}">
-                                    <i class="fas fa-user"></i> My Profile
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('member_logout') }}">
-                                    <i class="fas fa-sign-out-alt"></i> Logout
-                                </a></li>
-                            {% elif session.guest_id %}
-                                <li><a class="dropdown-item" href="{{ url_for('guest_dashboard') }}">
-                                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('guest_logout') }}">
-                                    <i class="fas fa-sign-out-alt"></i> Logout
-                                </a></li>
-                            {% elif current_user.is_authenticated %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin_logout') }}">
-                                    <i class="fas fa-sign-out-alt"></i> Logout
-                                </a></li>
-                            {% else %}
-                                <li><a class="dropdown-item" href="{{ url_for('member_login') }}">
-                                    <i class="fas fa-user"></i> Member Login
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('guest_login') }}">
-                                    <i class="fas fa-user-friends"></i> Guest Login
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('register_member') }}">
-                                    <i class="fas fa-user-plus"></i> Register
-                                </a></li>
-                            {% endif %}
-                        </ul>
-                    </li>
-                </ul>
+                {% else %}
+                    <a href="{{ url_for('member_login') }}" class="utility-btn utility-btn-success"><i class="fas fa-sign-in-alt me-1"></i>Member Portal</a>
+                    <a href="{{ url_for('register_member') }}" class="utility-btn"><i class="fas fa-user-plus me-1"></i>Register</a>
+                {% endif %}
             </div>
         </div>
-    </nav>
+    </div>
+
+    <!-- ===== 2. MAIN NAVIGATION HEADER ===== -->
+    <header class="main-nav">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="{{ url_for('home') }}">
+                    <span class="brand-crest"><i class="fas fa-crown"></i></span>
+                    <span class="brand-name">Onyango <span class="text-gradient">Family</span></span>
+                </a>
+                <div class="nav-tools d-flex align-items-center gap-2 order-lg-3">
+                    <button class="nav-icon-btn" id="searchOpenBtn" type="button" aria-label="Search site">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <a href="{{ url_for('submit_story') }}" class="nav-tool-link d-none d-md-inline-flex">
+                        <i class="fas fa-pen me-1"></i>Submit Story
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse order-lg-2" id="mainNavbar">
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}"><i class="fas fa-info-circle"></i>About Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('stories') }}"><i class="fas fa-book-open"></i>Stories &amp; Heritage</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('events_page') }}"><i class="fas fa-calendar-alt"></i>Events &amp; Gatherings</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('gallery') }}"><i class="fas fa-images"></i>Gallery</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ===== SEARCH OVERLAY ===== -->
+    <div id="searchOverlay" class="search-overlay">
+        <button class="search-overlay-close" id="searchCloseBtn" type="button" aria-label="Close search">&times;</button>
+        <form action="{{ url_for('search_page') }}" method="GET" class="search-overlay-form">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" name="q" class="form-control search-overlay-input" placeholder="Search members, stories, events..." value="{{ request.args.get('q', '') }}" autocomplete="off">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+        <p class="search-overlay-hint">Search stories, members, or events by keyword &mdash; press <kbd>ESC</kbd> to close</p>
+    </div>
 
     <!-- Flash Messages -->
     <div class="flash-messages">
@@ -143,40 +96,38 @@
     <!-- Main Content -->
     {% block content %}{% endblock %}
 
-    <!-- Footer -->
-    <footer class="footer">
+    <!-- ===== FOOTER & ADMINISTRATIVE INFORMATION ===== -->
+    <footer class="footer footer-new">
         <div class="container">
-            <div class="row">
+            <div class="row g-4 align-items-start">
                 <div class="col-lg-4 mb-4 mb-lg-0">
-                    <h5><i class="fas fa-users me-2"></i>Onyango Family</h5>
-                    <p class="mb-4">Preserving our heritage, sharing our stories, and strengthening our bonds across generations.</p>
-                    <div class="social-icons">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    <h5 class="footer-links-title text-center">Quick Links</h5>
+                    <div class="footer-links-grid">
+                        <ul class="list-unstyled mb-0">
+                            <li><a href="{{ url_for('home') }}"><i class="fas fa-chevron-right me-2"></i>Home</a></li>
+                            <li><a href="{{ url_for('about') }}"><i class="fas fa-chevron-right me-2"></i>About Us</a></li>
+                            <li><a href="{{ url_for('family_tree') }}"><i class="fas fa-chevron-right me-2"></i>Family Tree</a></li>
+                        </ul>
+                        <ul class="list-unstyled mb-0">
+                            <li><a href="{{ url_for('directory_page') }}"><i class="fas fa-chevron-right me-2"></i>Directory</a></li>
+                            <li><a href="{{ url_for('member_login') }}"><i class="fas fa-chevron-right me-2"></i>Member Portal</a></li>
+                            <li><a href="{{ url_for('stories') }}"><i class="fas fa-chevron-right me-2"></i>Stories &amp; Heritage</a></li>
+                        </ul>
+                        <ul class="list-unstyled mb-0">
+                            <li><a href="{{ url_for('events_page') }}"><i class="fas fa-chevron-right me-2"></i>Events &amp; Gatherings</a></li>
+                            <li><a href="{{ url_for('gallery') }}"><i class="fas fa-chevron-right me-2"></i>Gallery</a></li>
+                            <li><a href="{{ url_for('register_member') }}"><i class="fas fa-chevron-right me-2"></i>Register / Join</a></li>
+                        </ul>
                     </div>
                 </div>
-                <div class="col-lg-4 mb-4 mb-lg-0">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{{ url_for('home') }}"><i class="fas fa-chevron-right me-2"></i>Home</a></li>
-                        <li><a href="{{ url_for('about') }}"><i class="fas fa-chevron-right me-2"></i>About Us</a></li>
-                        <li><a href="{{ url_for('family_tree') }}"><i class="fas fa-chevron-right me-2"></i>Family Tree</a></li>
-                        <li><a href="{{ url_for('stories') }}"><i class="fas fa-chevron-right me-2"></i>Stories</a></li>
-                        <li><a href="{{ url_for('register_member') }}"><i class="fas fa-chevron-right me-2"></i>Register</a></li>
-                    </ul>
+                <div class="col-lg-4 mb-4 mb-lg-0 ms-lg-auto text-lg-end">
+                    <h5 class="footer-section-title text-center">Contact Information</h5>
+                    <div class="contact-info">
+                        <p><i class="fas fa-envelope"></i><a href="mailto:ouma.mark@outlook.com">ouma.mark@outlook.com</a></p>
+                        <p>📞<a href="tel:+254745492808">+254745492808</a></p>
+                    </div>
                 </div>
-                <div class="col-lg-4">
-                    <h5>Contact</h5>
-                    <ul class="list-unstyled">
-                        <li><i class="fas fa-envelope me-2"></i>info@onyangofamily.com</li>
-                        <li><i class="fas fa-phone me-2"></i>+254 700 000 000</li>
-                        <li><i class="fas fa-map-marker-alt me-2"></i>Nairobi, Kenya</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
+            <div class="copyright">
                 <p class="mb-0">&copy; 2026 Onyango Family. All rights reserved.</p>
             </div>
         </div>
@@ -184,5 +135,27 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+    // Search overlay open/close
+    document.addEventListener('DOMContentLoaded', function () {
+        const overlay = document.getElementById('searchOverlay');
+        const openBtn = document.getElementById('searchOpenBtn');
+        const closeBtn = document.getElementById('searchCloseBtn');
+
+        function openSearch() {
+            overlay.classList.add('open');
+            const input = overlay.querySelector('.search-overlay-input');
+            setTimeout(function () { if (input) input.focus(); }, 150);
+        }
+        function closeSearch() {
+            overlay.classList.remove('open');
+        }
+        if (openBtn) openBtn.addEventListener('click', openSearch);
+        if (closeBtn) closeBtn.addEventListener('click', closeSearch);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeSearch();
+        });
+    });
+    </script>
 </body>
 </html>

@@ -17,17 +17,16 @@
             <i id="profileAvatarIcon" class="fas fa-user"></i>
             {% endif %}
         </div>
-        {% if session.member_id or session.guest_id or session.get('_user_id') %}
+        {% if session.member_id or session.get('_user_id') %}
         <button class="edit-avatar-btn" onclick="document.getElementById('profilePicInput').click();" title="Edit Profile Picture">
             <i class="fas fa-camera"></i>
         </button>
         {% endif %}
     </div>
     <h2>{{ member.name }}</h2>
-    <p class="mb-0" style="color: rgba(255,255,255,0.7);">{{ member.role or 'Family Member' }}</p>
 </div>
 
-{% if session.member_id or session.guest_id or session.get('_user_id') %}
+{% if session.member_id or session.get('_user_id') %}
 <!-- Hidden form for profile picture upload -->
 <form id="profilePicForm" action="{{ url_for('edit_profile_picture', member_id=member.id) }}" method="post" enctype="multipart/form-data" style="display:none;">
     <input type="file" id="profilePicInput" name="profile_picture" accept="image/*" onchange="document.getElementById('profilePicForm').submit();">
@@ -38,10 +37,6 @@
                             <div class="col-md-6 mb-4">
                                 <div class="about-card h-100">
                                     <h4><i class="fas fa-info-circle"></i>Details</h4>
-                                    <div class="mb-3">
-                                        <small class="text-muted d-block">Role</small>
-                                        <strong>{{ member.role or '—' }}</strong>
-                                    </div>
                                     <div class="mb-3">
                                         <small class="text-muted d-block">Relationship</small>
                                         <strong>{{ member.relationship or '—' }}</strong>
@@ -66,11 +61,16 @@
                             </div>
                         </div>
                         
-                        {% if session.guest_id or session.get('_user_id') %}
+                        {% if session.member_id or session.get('_user_id') %}
                         <div class="text-center mb-4">
                             <a href="{{ url_for('upload_photo', member_id=member.id) }}" class="btn btn-primary">
                                 <i class="fas fa-camera me-2"></i>Upload Photo
                             </a>
+                            {% if session.member_id == member.id %}
+                            <a href="{{ url_for('member_edit_profile') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
+                            </a>
+                            {% endif %}
                         </div>
                         {% endif %}
 

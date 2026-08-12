@@ -12,58 +12,43 @@
         
         {% if tree_nodes %}
         <div class="text-center mb-5">
-            <!-- Family Tree Visual Structure -->
-            {% set root = tree_nodes|selectattr('parent_id', 'none')|first %}
-            {% if root %}
+            <!-- Family Tree Visual Structure with Directional Arrows -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div class="tree-legend mb-0">
+                    <div class="tree-legend-item">
+                        <div class="legend-line"></div>
+                        <span>Parent → Child</span>
+                    </div>
+                    <div class="tree-legend-item">
+                        <div class="legend-marker couple-flow">❤️</div>
+                        <span>Couple</span>
+                    </div>
+                    <div class="tree-legend-item">
+                        <div class="legend-marker male"></div>
+                        <span>Male</span>
+                    </div>
+                    <div class="tree-legend-item">
+                        <div class="legend-marker female"></div>
+                        <span>Female</span>
+                    </div>
+                    <div class="tree-legend-item">
+                        <div class="legend-marker root"></div>
+                        <span>Root Ancestor</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" id="downloadPngBtn" type="button">
+                    <i class="fas fa-download me-1"></i> Download Tree
+                </button>
+            </div>
             <div class="tree-container">
-                <!-- Root -->
-                <div class="tree-root">
-                    <div class="member-node root-node">
-                        <div class="member-avatar" style="background: linear-gradient(135deg, #f39c12, #e74c3c);">
-                            <i class="fas fa-crown"></i>
-                        </div>
-                        <h5 class="mb-1">{{ root.name }}</h5>
-                        <small class="text-muted">{{ root.relation or 'Root Ancestor' }}</small>
-                    </div>
-                    
-                    {% set level1 = tree_nodes|selectattr('parent_id', 'equalto', root.id)|list %}
-                    {% if level1 %}
-                    <div class="tree-line"></div>
-                    <div class="tree-children">
-                        {% for node in level1 %}
-                        <div class="member-node">
-                            <div class="member-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <h6 class="mb-1">{{ node.name }}</h6>
-                            <small class="text-muted">{{ node.relation or 'Child' }}</small>
-                            
-                            {% set level2 = tree_nodes|selectattr('parent_id', 'equalto', node.id)|list %}
-                            {% if level2 %}
-                            <div class="tree-line"></div>
-                            <div class="tree-children">
-                                {% for child in level2 %}
-                                <div class="member-node">
-                                    <div class="member-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2); width: 40px; height: 40px; font-size: 16px;">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <h6 class="mb-1" style="font-size: 14px;">{{ child.name }}</h6>
-                                    <small class="text-muted">{{ child.relation or 'Grandchild' }}</small>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+                <div class="tree-svg-wrapper" id="publicTreeSvgContainer">
+                    <!-- SVG tree rendered by JavaScript -->
                 </div>
             </div>
-            {% endif %}
         </div>
         
-        <!-- List View -->
-        <div class="row stagger-children">
+        <!-- List View (hidden by CSS .tree-list-view) -->
+        <div class="row stagger-children tree-list-view">
             {% set root = tree_nodes|selectattr('parent_id', 'none')|first %}
             {% if root %}
             <div class="col-md-4 mb-4">
@@ -74,6 +59,12 @@
                     <div class="card-body">
                         <ul class="list-unstyled mb-0">
                             <li><i class="fas fa-user-circle"></i> {{ root.name }} <span class="badge bg-warning text-dark">{{ root.relation or 'Root' }}</span></li>
+                            {% if root.spouse_id %}
+                                {% set spouse = tree_nodes|selectattr('id', 'equalto', root.spouse_id)|first %}
+                                {% if spouse %}
+                                    <li><i class="fas fa-user-circle"></i> {{ spouse.name }} <span class="badge bg-warning text-dark">{{ spouse.relation or 'Spouse' }}</span></li>
+                                {% endif %}
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
@@ -89,7 +80,16 @@
                     <div class="card-body">
                         <ul class="list-unstyled mb-0">
                             {% for node in level1 %}
-                            <li><i class="fas fa-user-circle"></i> {{ node.name }} <span class="badge bg-primary">{{ node.relation or 'Child' }}</span></li>
+                            <li>
+                                <i class="fas fa-user-circle"></i> {{ node.name }} 
+                                <span class="badge bg-primary">{{ node.relation or 'Child' }}</span>
+                                {% if node.spouse_id %}
+                                    {% set spouse = tree_nodes|selectattr('id', 'equalto', node.spouse_id)|first %}
+                                    {% if spouse %}
+                                        <br><small class="text-muted ms-4"><i class="fas fa-heart me-1 text-danger"></i>{{ spouse.name }}</small>
+                                    {% endif %}
+                                {% endif %}
+                            </li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -136,59 +136,101 @@
 </section>
 
 <style>
+.tree-legend {
+    display: flex;
+    gap: 20px;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.tree-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+}
+.tree-legend-item .legend-line {
+    width: 30px;
+    height: 2px;
+    background: #6B7280;
+    position: relative;
+}
+.tree-legend-item .legend-line::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: -3px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid #6B7280;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+}
+.tree-legend-item .legend-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+.tree-legend-item .legend-marker.couple-flow {
+    position: relative;
+    width: 36px;
+    height: 16px;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+.legend-marker.male { background: #667eea; }
+.legend-marker.female { background: #ec4899; }
+.legend-marker.couple { background: linear-gradient(135deg, #667eea 50%, #ec4899 50%); }
+.legend-marker.root { background: #f39c12; }
+
 .tree-container {
     padding: 20px;
     overflow-x: auto;
-}
-.tree-root {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.member-node {
     background: white;
-    border-radius: 16px;
-    padding: 20px 30px;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    border: 2px solid #e9ecef;
-    transition: all 0.3s;
-    position: relative;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.04);
 }
-.member-node:hover {
-    border-color: #667eea;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(102,126,234,0.15);
-}
-.root-node {
-    border-color: #f39c12;
-    background: linear-gradient(135deg, #fff9e6, #fff3cd);
-    min-width: 200px;
-}
-.member-avatar {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 50%;
+.tree-svg-wrapper {
+    min-width: 100%;
     display: flex;
-    align-items: center;
     justify-content: center;
-    margin: 0 auto 12px;
-    color: white;
-    font-size: 24px;
 }
-.tree-line {
-    width: 2px;
-    height: 30px;
-    background: #667eea;
+.tree-svg-wrapper svg {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
     margin: 0 auto;
 }
-.tree-children {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
-    margin-top: 10px;
+.tree-node-card {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.tree-node-card:hover .node-bg {
+    filter: brightness(0.95);
+}
+.tree-node-card .node-name-text {
+    font-weight: 600;
+    font-size: 12px;
+    fill: #0f172a;
+}
+.tree-node-card .node-relation-text {
+    font-size: 10px;
+    fill: #64748b;
+}
+.tree-node-card .node-gender-icon {
+    font-size: 14px;
 }
 .tree-card {
     background: white;
@@ -212,6 +254,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
 }
 .tree-card .card-body ul li:last-child {
     border-bottom: none;
@@ -221,4 +264,429 @@
     font-size: 18px;
 }
 </style>
+
+<script>
+// ===== PUBLIC SVG FAMILY TREE RENDERER =====
+// Renders the family tree as an SVG with directional arrows (marker-end)
+// pointing from parents to children.
+
+const treeData = {{ tree|tojson }};
+
+// Node dimensions (minimum)
+const MIN_NODE_WIDTH = 120;
+const NODE_HEIGHT = 70;
+const NODE_GAP_X = 30;
+const NODE_GAP_Y = 80;
+const COUPLE_GAP = 46;   // space for the heart + double arrows
+
+// Colors
+const COLOR_MALE = '#667eea';
+const COLOR_FEMALE = '#ec4899';
+const COLOR_ARROW = '#4B5563';
+const COLOR_BG = '#ffffff';
+const COLOR_BORDER = '#e9ecef';
+const COLOR_ROOT_BG = '#fff9e6';
+const COLOR_ROOT_BORDER = '#f39c12';
+const COLOR_CARD_BG = '#ffffff';
+const COLOR_CARD_BORDER = '#d1d5db';
+
+// Utility: estimate text width (generous factor so names never overflow)
+function textWidth(text, fontSize) {
+    if (!text) return 0;
+    return text.length * fontSize * 0.78;
+}
+
+// Fit a name into the box by wrapping at word boundaries.
+function wrapText(text, maxWidth, fontSize) {
+    const words = String(text || '').split(/\s+/);
+    const lines = [];
+    let line = '';
+    let maxLineWidth = 0;
+    words.forEach(word => {
+        const test = line ? line + ' ' + word : word;
+        if (textWidth(test, fontSize) > maxWidth && line) {
+            lines.push(line);
+            line = word;
+        } else {
+            line = test;
+        }
+        maxLineWidth = Math.max(maxLineWidth, textWidth(line, fontSize));
+    });
+    if (line) lines.push(line);
+    return { lines, width: maxLineWidth };
+}
+
+// Compute the required box width/height for a person's name + relation
+function measureNode(data) {
+    const nameFont = 11;
+    const padX = 30;
+    const topSpace = 24; // gender icon row
+    const relSpace = data.relation ? 18 : 0;
+    const lineH = 15;
+    const minW = 150;
+
+    // Size the box to fit the name on one line when possible
+    const nameW = textWidth(data.name, nameFont);
+    let avail = Math.max(minW, nameW + padX);
+    let wrapped = wrapText(data.name, avail - padX, nameFont);
+    let neededW = wrapped.width + padX;
+    let neededH = topSpace + wrapped.lines.length * lineH + relSpace + 10;
+
+    const maxW = 280;
+    if (neededW > avail && avail < maxW) {
+        avail = Math.min(neededW, maxW);
+        wrapped = wrapText(data.name, avail - padX, nameFont);
+        neededW = wrapped.width + padX;
+        neededH = topSpace + wrapped.lines.length * lineH + relSpace + 10;
+    }
+
+    const width = Math.max(minW, Math.ceil(neededW));
+    const height = Math.max(NODE_HEIGHT, Math.ceil(neededH));
+    return { width, height, lines: wrapped.lines };
+}
+
+// Recursively compute the subtree width for a couple
+function subtreeWidth(couple) {
+    const m1 = measureNode(couple);
+    const m2 = couple.spouse ? measureNode(couple.spouse) : null;
+    const own = m2 ? m1.width + m2.width + COUPLE_GAP : m1.width;
+    const kids = couple.children || [];
+    if (kids.length === 0) return own;
+    let total = 0;
+    kids.forEach(k => { total += subtreeWidth(k); });
+    total += (kids.length - 1) * NODE_GAP_X;
+    return Math.max(own, total);
+}
+
+// Build the tree layout
+function buildLayout(couples) {
+    const nodes = [];
+    const edges = [];
+    const couplesInfo = [];
+    let maxY = 0;
+
+    function layoutCouple(couple, x, y, isRoot) {
+        const spouse = couple.spouse;
+        const hasSpouse = !!spouse;
+
+        const m1 = measureNode(couple);
+        const m2 = spouse ? measureNode(spouse) : null;
+        const coupleWidth = hasSpouse ? m1.width + m2.width + COUPLE_GAP : m1.width;
+        const startX = x - coupleWidth / 2;
+
+        const husbandNode = {
+            id: couple.id, x: startX, y: y,
+            width: m1.width, height: m1.height,
+            data: { ...couple, isRoot }, lines: m1.lines
+        };
+        nodes.push(husbandNode);
+
+        let wifeNode = null;
+        if (hasSpouse) {
+            wifeNode = {
+                id: spouse.id,
+                x: startX + m1.width + COUPLE_GAP, y: y,
+                width: m2.width, height: m2.height,
+                data: { ...spouse, isRoot }, lines: m2.lines
+            };
+            nodes.push(wifeNode);
+        }
+
+        couplesInfo.push({ husbandNode, wifeNode, hasSpouse, y, height: Math.max(m1.height, m2 ? m2.height : 0) });
+
+        const children = couple.children || [];
+        if (children.length > 0) {
+            let totalChildrenWidth = 0;
+            const childWidths = children.map(c => {
+                const w = subtreeWidth(c);
+                totalChildrenWidth += w;
+                return w;
+            });
+            totalChildrenWidth += (children.length - 1) * NODE_GAP_X;
+
+            let childX = x - totalChildrenWidth / 2;
+            const parentBottom = y + Math.max(m1.height, m2 ? m2.height : 0);
+            const childY = parentBottom + NODE_GAP_Y;
+
+            children.forEach((child, i) => {
+                const w = childWidths[i];
+                const childCenterX = childX + w / 2;
+
+                edges.push({ from: couple.id, to: child.id });
+                if (hasSpouse) edges.push({ from: spouse.id, to: child.id });
+
+                layoutCouple(child, childCenterX, childY, false);
+                childX += w + NODE_GAP_X;
+            });
+
+            maxY = Math.max(maxY, childY + 70);
+        } else {
+            maxY = Math.max(maxY, y + Math.max(m1.height, m2 ? m2.height : 0));
+        }
+    }
+
+    let rootX = 0;
+    const rootGap = 40;
+    let maxRootRight = 0;
+    couples.forEach((couple) => {
+        const w = subtreeWidth(couple);
+        const centerX = rootX + w / 2;
+        layoutCouple(couple, centerX, 30, true);
+        rootX += w + rootGap;
+        maxRootRight = rootX;
+    });
+
+    return { nodes, edges, couplesInfo, width: Math.max(maxRootRight, 300), height: maxY + 40 };
+}
+
+// Render the SVG
+let currentSvg = null;
+
+function renderTree() {
+    const container = document.getElementById('publicTreeSvgContainer');
+    if (!container || !treeData || treeData.length === 0) return;
+
+    const layout = buildLayout(treeData);
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', layout.width);
+    svg.setAttribute('height', layout.height);
+    svg.setAttribute('viewBox', `0 0 ${layout.width} ${layout.height}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMin meet');
+    svg.setAttribute('xmlns', svgNS);
+
+    // Defs: arrow marker + shadow filter + box gradients
+    const defs = document.createElementNS(svgNS, 'defs');
+    const marker = document.createElementNS(svgNS, 'marker');
+    marker.setAttribute('id', 'p-arrow');
+    marker.setAttribute('viewBox', '0 0 18 18');
+    marker.setAttribute('refX', '14');
+    marker.setAttribute('refY', '9');
+    marker.setAttribute('markerWidth', '18');
+    marker.setAttribute('markerHeight', '18');
+    marker.setAttribute('orient', 'auto-start-reverse');
+    const mo = document.createElementNS(svgNS, 'path');
+    mo.setAttribute('d', 'M 0 0 L 18 9 L 0 18 z');
+    mo.setAttribute('fill', '#ffffff');
+    mo.setAttribute('stroke', COLOR_ARROW);
+    mo.setAttribute('stroke-width', '2');
+    const mp = document.createElementNS(svgNS, 'path');
+    mp.setAttribute('d', 'M 2.5 2.5 L 14 9 L 2.5 15.5 z');
+    mp.setAttribute('fill', COLOR_ARROW);
+    marker.appendChild(mo); marker.appendChild(mp); defs.appendChild(marker);
+
+    const filter = document.createElementNS(svgNS, 'filter');
+    filter.setAttribute('id', 'p-shadow');
+    filter.setAttribute('x', '-20%'); filter.setAttribute('y', '-20%');
+    filter.setAttribute('width', '140%'); filter.setAttribute('height', '140%');
+    const feDrop = document.createElementNS(svgNS, 'feDropShadow');
+    feDrop.setAttribute('dx', '0'); feDrop.setAttribute('dy', '2');
+    feDrop.setAttribute('stdDeviation', '2'); feDrop.setAttribute('flood-color', '#000000');
+    feDrop.setAttribute('flood-opacity', '0.2');
+    filter.appendChild(feDrop); defs.appendChild(filter);
+
+    const grad = document.createElementNS(svgNS, 'linearGradient');
+    grad.setAttribute('id', 'p-node-grad');
+    grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+    grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+    const st1 = document.createElementNS(svgNS, 'stop');
+    st1.setAttribute('offset', '0%'); st1.setAttribute('stop-color', '#ffffff');
+    const st2 = document.createElementNS(svgNS, 'stop');
+    st2.setAttribute('offset', '100%'); st2.setAttribute('stop-color', '#f8fafc');
+    grad.appendChild(st1); grad.appendChild(st2); defs.appendChild(grad);
+
+    const rgrad = document.createElementNS(svgNS, 'linearGradient');
+    rgrad.setAttribute('id', 'p-root-grad');
+    rgrad.setAttribute('x1', '0'); rgrad.setAttribute('y1', '0');
+    rgrad.setAttribute('x2', '0'); rgrad.setAttribute('y2', '1');
+    const rs1 = document.createElementNS(svgNS, 'stop');
+    rs1.setAttribute('offset', '0%'); rs1.setAttribute('stop-color', '#fffbe6');
+    const rs2 = document.createElementNS(svgNS, 'stop');
+    rs2.setAttribute('offset', '100%'); rs2.setAttribute('stop-color', '#fef3c7');
+    rgrad.appendChild(rs1); rgrad.appendChild(rs2); defs.appendChild(rgrad);
+
+    svg.appendChild(defs);
+
+    // Draw connector edges (bold orthogonal with halo + arrows)
+    const nodeMap = {};
+    layout.nodes.forEach(n => { nodeMap[n.id] = n; });
+
+    layout.edges.forEach(edge => {
+        const from = nodeMap[edge.from];
+        const to = nodeMap[edge.to];
+        if (!from || !to) return;
+        const x1 = from.x + from.width / 2;
+        const y1 = from.y + from.height;
+        const x2 = to.x + to.width / 2;
+        const y2 = to.y;
+        const midY = y1 + (y2 - y1) / 2;
+        const pathD = `M ${x1} ${y1} V ${midY} H ${x2} V ${y2}`;
+
+        const halo = document.createElementNS(svgNS, 'path');
+        halo.setAttribute('d', pathD);
+        halo.setAttribute('stroke', '#ffffff');
+        halo.setAttribute('stroke-width', '8');
+        halo.setAttribute('fill', 'none');
+        halo.setAttribute('stroke-linecap', 'round');
+        halo.setAttribute('stroke-linejoin', 'round');
+        halo.setAttribute('opacity', '0.95');
+        svg.appendChild(halo);
+
+        const line = document.createElementNS(svgNS, 'path');
+        line.setAttribute('d', pathD);
+        line.setAttribute('stroke', COLOR_ARROW);
+        line.setAttribute('stroke-width', '3.5');
+        line.setAttribute('fill', 'none');
+        line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('stroke-linejoin', 'round');
+        line.setAttribute('marker-end', 'url(#p-arrow)');
+        svg.appendChild(line);
+    });
+
+    // Draw couple connectors (double arrow + heart) BEFORE nodes
+    layout.couplesInfo.forEach(c => {
+        if (!c.hasSpouse) return;
+        const h = c.husbandNode;
+        const w = c.wifeNode;
+        const midY = c.y + c.height / 2;
+        const x1 = h.x + h.width;
+        const x2 = w.x;
+
+        const coupleLine = document.createElementNS(svgNS, 'line');
+        coupleLine.setAttribute('x1', x1 + 2);
+        coupleLine.setAttribute('y1', midY);
+        coupleLine.setAttribute('x2', x2 - 2);
+        coupleLine.setAttribute('y2', midY);
+        coupleLine.setAttribute('stroke', '#ec4899');
+        coupleLine.setAttribute('stroke-width', '3');
+        coupleLine.setAttribute('marker-start', 'url(#p-arrow)');
+        coupleLine.setAttribute('marker-end', 'url(#p-arrow)');
+        svg.appendChild(coupleLine);
+
+        const heartX = (x1 + x2) / 2;
+        const heart = document.createElementNS(svgNS, 'text');
+        heart.setAttribute('x', heartX);
+        heart.setAttribute('y', midY + 6);
+        heart.setAttribute('text-anchor', 'middle');
+        heart.setAttribute('font-size', '22');
+        heart.textContent = '❤️';
+        svg.appendChild(heart);
+    });
+
+    // Draw nodes
+    layout.nodes.forEach(node => {
+        const g = document.createElementNS(svgNS, 'g');
+        g.setAttribute('class', 'tree-node-card');
+        g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+        g.setAttribute('filter', 'url(#p-shadow)');
+
+        const rect = document.createElementNS(svgNS, 'rect');
+        rect.setAttribute('class', 'node-bg');
+        rect.setAttribute('width', node.width);
+        rect.setAttribute('height', node.height);
+        rect.setAttribute('rx', '12');
+        rect.setAttribute('fill', node.data.isRoot ? 'url(#p-root-grad)' : 'url(#p-node-grad)');
+        rect.setAttribute('stroke', node.data.isRoot ? COLOR_ROOT_BORDER : COLOR_CARD_BORDER);
+        rect.setAttribute('stroke-width', '2');
+        g.appendChild(rect);
+
+        const icon = document.createElementNS(svgNS, 'text');
+        icon.setAttribute('class', 'node-gender-icon');
+        icon.setAttribute('x', '12');
+        icon.setAttribute('y', '22');
+        const genderColor = node.data.gender === 'female' ? COLOR_FEMALE : COLOR_MALE;
+        icon.setAttribute('fill', genderColor);
+        icon.textContent = node.data.gender === 'female' ? '♀' : '♂';
+        g.appendChild(icon);
+
+        let nameY = 22;
+        const nameFont = 11;
+        node.lines.forEach(lineText => {
+            const t = document.createElementNS(svgNS, 'text');
+            t.setAttribute('x', '28');
+            t.setAttribute('y', nameY + 2);
+            t.setAttribute('font-size', nameFont);
+            t.setAttribute('font-weight', '600');
+            t.setAttribute('fill', '#0f172a');
+            t.textContent = lineText;
+            g.appendChild(t);
+            nameY += 15;
+        });
+
+        if (node.data.relation) {
+            const rel = document.createElementNS(svgNS, 'text');
+            rel.setAttribute('x', '28');
+            rel.setAttribute('y', nameY + 8);
+            rel.setAttribute('font-size', '10');
+            rel.setAttribute('fill', '#64748b');
+            rel.textContent = node.data.relation;
+            g.appendChild(rel);
+        }
+
+        if (node.data.isRoot) {
+            const crown = document.createElementNS(svgNS, 'text');
+            crown.setAttribute('x', node.width - 18);
+            crown.setAttribute('y', '20');
+            crown.setAttribute('font-size', '14');
+            crown.textContent = '👑';
+            g.appendChild(crown);
+        }
+
+        svg.appendChild(g);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(svg);
+    currentSvg = svg;
+}
+
+// ===== DOWNLOAD AS PNG =====
+function downloadPng() {
+    if (!currentSvg) return;
+    // Clone the SVG so we don't disturb the live one
+    const clone = currentSvg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const w = parseFloat(currentSvg.getAttribute('width')) + 20;
+    const h = parseFloat(currentSvg.getAttribute('height')) + 20;
+
+    // Add a white background
+    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bg.setAttribute('x', '-10');
+    bg.setAttribute('y', '-10');
+    bg.setAttribute('width', w);
+    bg.setAttribute('height', h);
+    bg.setAttribute('fill', '#ffffff');
+    clone.insertBefore(bg, clone.firstChild);
+
+    const data = new XMLSerializer().serializeToString(clone);
+    const blob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 10, 10);
+        URL.revokeObjectURL(url);
+        const pngUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = pngUrl;
+        a.download = 'onyango-family-tree.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+    img.src = url;
+}
+
+// Render on page load
+document.addEventListener('DOMContentLoaded', function() {
+    renderTree();
+    const pngBtn = document.getElementById('downloadPngBtn');
+    if (pngBtn) pngBtn.addEventListener('click', downloadPng);
+});
+</script>
 {% endblock %}

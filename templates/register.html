@@ -34,21 +34,33 @@
             <input type="email" name="email" class="form-control" required placeholder="Enter your email">
         </div>
         <div class="col-md-6 mb-3">
-            <label class="form-label">Password *</label>
-            <input type="password" name="password" class="form-control" required placeholder="Choose a password" minlength="6">
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6 mb-3">
             <label class="form-label">Phone Number</label>
             <input type="tel" name="phone" class="form-control" placeholder="e.g., +254 700 000 000">
         </div>
     </div>
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label class="form-label">Role in Family</label>
-            <input type="text" name="role" class="form-control" placeholder="e.g., Patriarch, Matriarch">
+            <label class="form-label">Password *</label>
+            <input type="password" name="password" id="password" class="form-control" required placeholder="Choose a password" minlength="6" pattern="(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}" oninput="validatePassword(this.value)">
+            <div id="passwordHelp" class="form-text">
+                <i class="fas fa-info-circle me-1"></i>Password must be at least 6 characters and contain both letters & digits.
+            </div>
+            <div id="passwordFeedback" class="invalid-feedback d-none">
+                <i class="fas fa-exclamation-circle me-1"></i>Password does not meet the required complexity. It must be at least 6 characters and contain both letters & digits.
+            </div>
         </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Confirm Password *</label>
+            <input type="password" name="confirm_password" id="confirm_password" class="form-control" required placeholder="Re-enter your password" minlength="6" oninput="validateConfirmPassword(this.value)">
+            <div id="confirmPasswordHelp" class="form-text">
+                <i class="fas fa-key me-1"></i>Re-type your password to confirm.
+            </div>
+            <div id="confirmPasswordFeedback" class="invalid-feedback d-none">
+                <i class="fas fa-exclamation-circle me-1"></i>Passwords do not match.
+            </div>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-md-6 mb-3">
             <label class="form-label">Relationship</label>
             <input type="text" name="relationship" class="form-control" placeholder="e.g., Son, Daughter, Cousin">

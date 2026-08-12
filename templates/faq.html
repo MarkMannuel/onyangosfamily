@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <h1 class="section-title mb-4"><i class="fas fa-circle-question text-gradient me-2"></i>Frequently Asked Questions</h1>
+        <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqOne">
+                        How do I join the family website?
+                    </button>
+                </h2>
+                <div id="faqOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">Create an account through the registration page and wait for admin approval.</div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqTwo">
+                        Can I share photos and stories?
+                    </button>
+                </h2>
+                <div id="faqTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">Yes, members can upload photos, post stories, and contribute to albums.</div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqThree">
+                        How do I contact other family members?
+                    </button>
+                </h2>
+                <div id="faqThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">Use the messages feature from your member dashboard to send private notes.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

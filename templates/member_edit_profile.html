@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - {{ member.name }}{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm animate-fadeIn">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="fas fa-user-edit text-gradient me-2"></i>Edit My Profile</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Your changes are saved immediately. The admin will be notified of any changes you make.
+                        </div>
+                        
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message|safe }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <form action="{{ url_for('member_edit_profile') }}" method="POST">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-user text-primary me-1"></i>Full Name</label>
+                                    <input type="text" name="name" class="form-control" value="{{ member.name }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-envelope text-primary me-1"></i>Email</label>
+                                    <input type="email" name="email" class="form-control" value="{{ member.email }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-phone text-primary me-1"></i>Phone</label>
+                                    <input type="text" name="phone" class="form-control" value="{{ member.phone or '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-users text-primary me-1"></i>Relationship</label>
+                                    <input type="text" name="relationship" class="form-control" value="{{ member.relationship or '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-birthday-cake text-primary me-1"></i>Birthday</label>
+                                    <input type="text" name="birthday" class="form-control" value="{{ member.birthday or '' }}" placeholder="e.g. 1990-05-15">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-align-left text-primary me-1"></i>About / Summary</label>
+                                    <textarea name="summary" class="form-control" rows="5" placeholder="Tell your family about yourself...">{{ member.summary or '' }}</textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <a href="{{ url_for('member_profile', member_id=member.id) }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i> Back to Profile
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

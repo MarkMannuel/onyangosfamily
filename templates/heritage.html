@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Heritage & Traditions - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <h1 class="section-title mb-4"><i class="fas fa-book-open text-gradient me-2"></i>Heritage & Traditions</h1>
+        <p class="section-subtitle">Rooted in the Luo community of <em>Joka Keny Ma Uwiny</em>, our family heritage honors the stories, values, and traditions carried forward from our ancestors.</p>
+
+        <!-- Traditions Grid -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card h-100 card-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="display-4 mb-3"><i class="fas fa-utensils text-gradient"></i></div>
+                        <h4>Traditional Recipes</h4>
+                        <p class="text-muted">Discover the family's cherished recipes — from festive feasts to everyday favorites that have been passed down through generations.</p>
+                        <a href="#" class="btn btn-outline-primary btn-sm">Explore Recipes</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 card-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="display-4 mb-3"><i class="fas fa-hands text-gradient"></i></div>
+                        <h4>Cultural Customs</h4>
+                        <p class="text-muted">Learn about the traditions, ceremonies, and customs that define our family's identity and connect us to our roots.</p>
+                        <a href="#" class="btn btn-outline-primary btn-sm">Learn Customs</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 card-hover">
+                    <div class="card-body text-center p-4">
+                        <div class="display-4 mb-3"><i class="fas fa-microphone-alt text-gradient"></i></div>
+                        <h4>Oral Histories</h4>
+                        <p class="text-muted">Listen to recorded stories and interviews with our elders, preserving the family's oral history for future generations.</p>
+                        <a href="#" class="btn btn-outline-primary btn-sm">Listen Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Timeline -->
+        <h2 class="section-title mb-5"><i class="fas fa-history text-gradient me-2"></i>Family Historical Timeline</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h5>Family Origins</h5>
+                    <p class="text-muted mb-2"><i class="fas fa-calendar me-1"></i>Generations ago</p>
+                    <p>The Onyango family traces its roots back to our ancestors who established our family's legacy and values.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h5>Building Our Community</h5>
+                    <p class="text-muted mb-2"><i class="fas fa-calendar me-1"></i>Past generations</p>
+                    <p>Our family grew and spread across regions, building strong community bonds and supporting one another through the years.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h5>Preserving Our Heritage</h5>
+                    <p class="text-muted mb-2"><i class="fas fa-calendar me-1"></i>Today</p>
+                    <p>We continue to document our stories, photos, and traditions to ensure the Onyango legacy lives on for generations to come.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.timeline {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #6366F1, #EC4899);
+    border-radius: 3px;
+}
+.timeline-item {
+    position: relative;
+    padding-left: 60px;
+    margin-bottom: 40px;
+}
+.timeline-dot {
+    position: absolute;
+    left: 12px;
+    top: 8px;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border: 4px solid #6366F1;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+}
+.timeline-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+}
+.timeline-content:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

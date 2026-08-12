@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Photo Albums - Onyango Family{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container">
+        <h1 class="section-title mb-4"><i class="fas fa-images text-gradient me-2"></i>Photo Albums</h1>
+        <div class="row g-4">
+            {% for album in albums %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ album.name }}</h5>
+                        <p class="text-muted">{{ album.description or 'A collection of family memories.' }}</p>
+                        <a href="{{ url_for('album_detail', album_id=album.id) }}" class="btn btn-outline-primary btn-sm">View Album</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <p class="text-muted">No albums yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

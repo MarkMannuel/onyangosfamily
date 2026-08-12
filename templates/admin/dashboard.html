@@ -345,6 +345,91 @@
             margin: 0;
         }
         
+        /* ===== FAMILY TREE VISUAL STYLES (same as homepage) ===== */
+        .tree-legend {
+            display: flex;
+            gap: 20px;
+            padding: 12px 20px;
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .tree-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .tree-legend-item .legend-line {
+            width: 30px;
+            height: 2px;
+            background: #6B7280;
+            position: relative;
+        }
+        .tree-legend-item .legend-line::after {
+            content: '';
+            position: absolute;
+            right: -2px;
+            top: -3px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid #6B7280;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+        }
+        .tree-legend-item .legend-marker {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        .legend-marker.male { background: #667eea; }
+        .legend-marker.female { background: #ec4899; }
+        .legend-marker.couple { background: linear-gradient(135deg, #667eea 50%, #ec4899 50%); }
+        .legend-marker.root { background: #f39c12; }
+        .tree-container {
+            padding: 20px;
+            overflow-x: auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .tree-svg-wrapper {
+            min-width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .tree-svg-wrapper svg {
+            min-width: 600px;
+            width: 100%;
+            height: auto;
+        }
+        .tree-node-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tree-node-card:hover .node-bg {
+            filter: brightness(0.95);
+        }
+        .tree-node-card .node-name-text {
+            font-weight: 600;
+            font-size: 12px;
+            fill: #0f172a;
+        }
+        .tree-node-card .node-relation-text {
+            font-size: 10px;
+            fill: #64748b;
+        }
+        .tree-node-card .node-gender-icon {
+            font-size: 14px;
+        }
+        
         .activity-timeline {
             position: relative;
             padding-left: 30px;
@@ -444,6 +529,18 @@
                     <a href="{{ url_for('admin_family_tree') }}" class="nav-link">
                         <i class="fas fa-sitemap"></i> Family Tree
                     </a>
+                    <a href="{{ url_for('admin_events') }}" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i> Events
+                    </a>
+                    <a href="{{ url_for('admin_announcements') }}" class="nav-link">
+                        <i class="fas fa-bullhorn"></i> Announcements
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}#teams" class="nav-link">
+                        <i class="fas fa-users-cog"></i> Teams & Meetings
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}#rsvp" class="nav-link">
+                        <i class="fas fa-clipboard-check"></i> RSVPs
+                    </a>
                     <a href="{{ url_for('home') }}" class="nav-link" target="_blank">
                         <i class="fas fa-eye"></i> View Site
                     </a>
@@ -531,38 +628,6 @@
                     </div>
                 </div>
                 
-                <!-- Guest Invitation Code Card -->
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                                    <div>
-                                        <h5 class="mb-2" style="color: white;"><i class="fas fa-ticket-alt me-2"></i>Guest Invitation Code</h5>
-                                        <p class="mb-0" style="color: rgba(255,255,255,0.8);">This code auto-refreshes every 5 minutes. Share it with guests to give them access.</p>
-                                    </div>
-                                    <div class="text-center">
-                                        {% if current_invitation %}
-                                        <div style="background: rgba(255,255,255,0.15); padding: 12px 30px; border-radius: 12px; border: 2px dashed rgba(255,255,255,0.3);">
-                                            <span style="font-size: 1.6rem; font-weight: 800; letter-spacing: 2px; font-family: monospace;">
-                                                {{ current_invitation.code }}
-                                            </span>
-                                        </div>
-                                        <small class="d-block mt-2" style="color: rgba(255,255,255,0.7);">
-                                            <i class="fas fa-sync-alt me-1"></i>Auto-refreshes in 5 min
-                                        </small>
-                                        {% else %}
-                                        <div style="background: rgba(255,255,255,0.15); padding: 12px 30px; border-radius: 12px;">
-                                            <span style="font-size: 1.2rem; font-weight: 600;">Generating...</span>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Quick Actions -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-3">
@@ -593,6 +658,15 @@
                         </a>
                     </div>
                     <div class="col-md-3">
+                        <a href="#admin-media-post" class="text-decoration-none">
+                            <div class="quick-action">
+                                <i class="fas fa-photo-video"></i>
+                                <h6>Best Moments</h6>
+                                <p>Upload admin photos and videos</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
                         <a href="{{ url_for('admin_photos') }}" class="text-decoration-none">
                             <div class="quick-action">
                                 <i class="fas fa-images"></i>
@@ -609,6 +683,615 @@
                                 <p>See all published stories</p>
                             </div>
                         </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('admin_family_tree') }}" class="text-decoration-none">
+                            <div class="quick-action">
+                                <i class="fas fa-sitemap"></i>
+                                <h6>Manage Family Tree</h6>
+                                <p>Add or edit family members</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Admin Media Post Section -->
+                <div class="card mb-4" id="admin-media-post">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-photo-video"></i> Admin Best Moments Upload</span>
+                        <span class="badge bg-info">{{ past_media|length }} items</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <h6 class="mb-3"><i class="fas fa-upload text-primary me-2"></i>Upload Photo or Video</h6>
+                                <form action="{{ url_for('upload_past_event') }}" method="POST" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" name="title" class="form-control" placeholder="Media title" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Caption</label>
+                                        <textarea name="caption" class="form-control" rows="3" placeholder="Optional caption"></textarea>
+                                    </div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Media Type</label>
+                                            <select name="media_type" class="form-select">
+                                                <option value="photo">Photo</option>
+                                                <option value="video">Video</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Event Date</label>
+                                            <input type="text" name="event_date" class="form-control" placeholder="e.g. June 2025">
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Choose File</label>
+                                        <input type="file" name="media" class="form-control" required>
+                                        <div class="form-text">Allowed photo types: png, jpg, jpeg, gif. Video types: mp4, webm, ogg, avi, mov, mkv.</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-cloud-upload-alt me-1"></i> Upload Best Moment
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-lg-6">
+                                <h6 class="mb-3"><i class="fas fa-photo-video text-success me-2"></i>Recent Best Moments</h6>
+                                <div class="row g-3">
+                                    {% for item in past_media[:6] %}
+                                    <div class="col-6">
+                                        <div class="border rounded p-2 h-100" style="background:#f8f9fa;">
+                                            {% if item.media_type == 'photo' %}
+                                            <img src="{{ url_for('static', filename='uploads/' ~ item.filename) }}" alt="{{ item.title }}" class="img-fluid rounded mb-2" style="height:120px; width:100%; object-fit:cover;">
+                                            {% else %}
+                                            <div style="position:relative; height:120px; background:#000; border-radius:10px; overflow:hidden;">
+                                                <video src="{{ url_for('static', filename='uploads/' ~ item.filename) }}" muted loop style="width:100%; height:100%; object-fit:cover;"></video>
+                                                <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.1rem; background:rgba(0,0,0,0.25);">
+                                                    <i class="fas fa-play-circle"></i>
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                            <div class="mt-2">
+                                                <strong class="d-block text-truncate">{{ item.title }}</strong>
+                                                <small class="text-muted">{{ item.event_date or 'No date' }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="col-12">
+                                        <div class="text-muted">No best moments have been posted yet.</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Family Tree Management -->
+                <div class="card" id="family-tree">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-sitemap"></i> Family Tree Management</span>
+                        <a href="{{ url_for('admin_family_tree') }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit me-1"></i> Manage Tree
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="stat-card text-center py-3">
+                                    <div class="stat-icon purple mx-auto">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="stat-number">{{ tree_stats.total_nodes }}</div>
+                                    <div class="stat-label">Total Members</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card text-center py-3">
+                                    <div class="stat-icon orange mx-auto">
+                                        <i class="fas fa-crown"></i>
+                                    </div>
+                                    <div class="stat-number">{{ tree_stats.total_roots }}</div>
+                                    <div class="stat-label">Root Ancestors</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card text-center py-3">
+                                    <div class="stat-icon blue mx-auto">
+                                        <i class="fas fa-mars"></i>
+                                    </div>
+                                    <div class="stat-number">{{ tree_stats.total_males }}</div>
+                                    <div class="stat-label">Males</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card text-center py-3">
+                                    <div class="stat-icon red mx-auto">
+                                        <i class="fas fa-venus"></i>
+                                    </div>
+                                    <div class="stat-number">{{ tree_stats.total_females }}</div>
+                                    <div class="stat-label">Females</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Visual Family Tree (same as homepage) -->
+                        <div class="mt-4">
+                            <h6 class="mb-3"><i class="fas fa-tree text-success me-2"></i>Family Tree Visual</h6>
+                            {% if tree %}
+                                <div class="tree-legend">
+                                    <div class="tree-legend-item">
+                                        <div class="legend-line"></div>
+                                        <span>Parent → Child</span>
+                                    </div>
+                                    <div class="tree-legend-item">
+                                        <div class="legend-marker male"></div>
+                                        <span>Male</span>
+                                    </div>
+                                    <div class="tree-legend-item">
+                                        <div class="legend-marker female"></div>
+                                        <span>Female</span>
+                                    </div>
+                                    <div class="tree-legend-item">
+                                        <div class="legend-marker couple"></div>
+                                        <span>Couple</span>
+                                    </div>
+                                    <div class="tree-legend-item">
+                                        <div class="legend-marker root"></div>
+                                        <span>Root Ancestor</span>
+                                    </div>
+                                </div>
+                                <div class="tree-container">
+                                    <div class="tree-svg-wrapper" id="adminDashboardTreeSvg">
+                                        <!-- SVG tree rendered by JavaScript -->
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-sitemap text-muted" style="font-size: 48px;"></i>
+                                    <p class="text-muted mt-2">No family tree data yet</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Add Member Form -->
+                        <div class="mt-4 p-3" style="background:#f8f9fa; border-radius:10px;">
+                            <h6 class="mb-3"><i class="fas fa-user-plus text-primary me-2"></i>Add New Member to Tree</h6>
+                            <form action="{{ url_for('add_tree_node') }}" method="POST" class="row g-2">
+                                <div class="col-md-3">
+                                    <input type="text" name="name" class="form-control" placeholder="Full Name" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="gender" class="form-select">
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" name="relation" class="form-control" placeholder="Relation">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" name="birth_date" class="form-control" placeholder="Birth Date">
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="parent_id" class="form-select">
+                                        <option value="">— Parent —</option>
+                                        {% for node in tree_nodes %}
+                                            <option value="{{ node.id }}">{{ node.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="submit" class="btn btn-primary w-100" title="Add">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Tree Nodes List with Edit/Delete -->
+                        <div class="table-responsive mt-3">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Gender</th>
+                                        <th>Birth Date</th>
+                                        <th>Parent</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for node in tree_nodes %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ node.name }}</strong>
+                                            {% if node.relation %}
+                                                <br><small class="text-muted">{{ node.relation }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if node.gender == 'male' %}primary{% else %}danger{% endif %}">
+                                                <i class="fas fa-{% if node.gender == 'male' %}mars{% else %}venus{% endif %} me-1"></i>
+                                                {{ node.gender|capitalize }}
+                                            </span>
+                                        </td>
+                                        <td>{{ node.birth_date or '—' }}</td>
+                                        <td>
+                                            {% if node.parent %}
+                                                {{ node.parent.name }}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-warning" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editNodeModal{{ node.id }}"
+                                                    title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-success add-child-btn"
+                                                    data-parent-id="{{ node.id }}"
+                                                    title="Add Child">
+                                                <i class="fas fa-child"></i>
+                                            </button>
+                                            <a href="{{ url_for('delete_tree_node', node_id=node.id) }}" 
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('Are you sure you want to delete {{ node.name }} from the family tree?')"
+                                               title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="fas fa-sitemap me-2"></i>No family tree members yet.
+                                            Use the form above to add the first member.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Edit Node Modals -->
+                {% for node in tree_nodes %}
+                <div class="modal fade" id="editNodeModal{{ node.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ url_for('edit_tree_node', node_id=node.id) }}" method="POST">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit {{ node.name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" name="name" class="form-control" value="{{ node.name }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Relation</label>
+                                        <input type="text" name="relation" class="form-control" value="{{ node.relation or '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Gender</label>
+                                        <select name="gender" class="form-select">
+                                            <option value="male" {% if node.gender == 'male' %}selected{% endif %}>Male</option>
+                                            <option value="female" {% if node.gender == 'female' %}selected{% endif %}>Female</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Birth Date</label>
+                                        <input type="text" name="birth_date" class="form-control" value="{{ node.birth_date or '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Parent</label>
+                                        <select name="parent_id" class="form-select">
+                                            <option value="">— None —</option>
+                                            {% for n in tree_nodes %}
+                                                {% if n.id != node.id %}
+                                                <option value="{{ n.id }}" {% if node.parent_id == n.id %}selected{% endif %}>{{ n.name }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Add Child Modal -->
+                <div class="modal" id="addChildModal" tabindex="-1" style="display:none;">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="" method="POST" id="addChildForm">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="fas fa-child me-2"></i>Add Child</h5>
+                                    <button type="button" class="btn-close" onclick="document.getElementById('addChildModal').style.display='none'"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Child Name</label>
+                                        <input type="text" name="name" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Gender</label>
+                                        <select name="gender" class="form-select">
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Birth Date</label>
+                                        <input type="text" name="birth_date" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('addChildModal').style.display='none'">Cancel</button>
+                                    <button type="submit" class="btn btn-success"><i class="fas fa-plus me-1"></i> Add Child</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teams & Meetings Management -->
+                <div class="card" id="teams">
+                    <div class="card-header">
+                        <i class="fas fa-users-cog"></i> Teams & Meetings Management
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="p-3" style="background:#f8f9fa; border-radius:10px;">
+                                    <h6 class="mb-3"><i class="fas fa-user-plus text-primary me-2"></i>Create Team</h6>
+                                    <form action="{{ url_for('create_team') }}" method="POST">
+                                        <div class="mb-2">
+                                            <input type="text" name="name" class="form-control" placeholder="Team Name" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <textarea name="description" class="form-control" rows="2" placeholder="Description"></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Team Leader</label>
+                                            <select name="leader_id" class="form-select">
+                                                <option value="">— Select Leader —</option>
+                                                {% for m in approved_members_list %}
+                                                    <option value="{{ m.id }}">{{ m.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Members</label>
+                                            <select name="member_ids" class="form-select" multiple size="4">
+                                                {% for m in approved_members_list %}
+                                                    <option value="{{ m.id }}">{{ m.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Create Team</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3" style="background:#f8f9fa; border-radius:10px;">
+                                    <h6 class="mb-3"><i class="fas fa-video text-danger me-2"></i>Schedule Online Meeting</h6>
+                                    <form action="{{ url_for('create_meeting') }}" method="POST">
+                                        <div class="mb-2">
+                                            <input type="text" name="title" class="form-control" placeholder="Meeting Title" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <textarea name="description" class="form-control" rows="2" placeholder="Description"></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="datetime-local" name="meeting_date" class="form-control" required>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-6">
+                                                <input type="number" name="duration_minutes" class="form-control" placeholder="Duration (min)" value="60">
+                                            </div>
+                                            <div class="col-6">
+                                                <select name="team_id" class="form-select">
+                                                    <option value="">— Team (optional) —</option>
+                                                    {% for t in all_teams %}
+                                                        <option value="{{ t.id }}">{{ t.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="url" name="meeting_link" class="form-control" placeholder="Meeting link (e.g. https://meet.google.com/...)">
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" name="is_public" class="form-check-input" id="meetingPublic" checked>
+                                            <label class="form-check-label" for="meetingPublic">Public to all members</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-video me-1"></i>Schedule Meeting</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="mb-3"><i class="fas fa-users text-primary me-2"></i>Teams</h6>
+                                {% if all_teams %}
+                                    {% for team in all_teams %}
+                                    <div class="pending-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <div class="item-title"><i class="fas fa-users me-1"></i>{{ team.name }}</div>
+                                                <div class="item-meta">
+                                                    {% if team.description %}{{ team.description|truncate(80) }}<br>{% endif %}
+                                                    Leader: {{ team.get_leader().name if team.get_leader() else 'None' }}
+                                                </div>
+                                            </div>
+                                            <a href="{{ url_for('delete_team', team_id=team.id) }}" 
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('Delete team {{ team.name }}?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-3 text-muted">No teams created yet.</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="mb-3"><i class="fas fa-video text-danger me-2"></i>Scheduled Meetings</h6>
+                                {% if all_meetings %}
+                                    {% for meeting in all_meetings %}
+                                    <div class="pending-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <div class="item-title"><i class="fas fa-video me-1"></i>{{ meeting.title }}</div>
+                                                <div class="item-meta">
+                                                    <i class="fas fa-calendar me-1"></i>{{ meeting.meeting_date.strftime('%b %d, %Y %H:%M') }}
+                                                    ({{ meeting.duration_minutes }} min)
+                                                    {% if meeting.get_team() %}
+                                                        <br><i class="fas fa-users me-1"></i>{{ meeting.get_team().name }}
+                                                    {% endif %}
+                                                    {% if meeting.meeting_link %}
+                                                        <br><a href="{{ meeting.meeting_link }}" target="_blank" class="text-primary">Join Meeting <i class="fas fa-external-link-alt"></i></a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <a href="{{ url_for('delete_meeting', meeting_id=meeting.id) }}" 
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('Delete meeting {{ meeting.title }}?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-3 text-muted">No meetings scheduled yet.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- RSVP List -->
+                <div class="card" id="rsvp">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-clipboard-check"></i> Event RSVPs</span>
+                        <span class="badge bg-success">{{ rsvp_list|length }} responses</span>
+                    </div>
+                    <div class="card-body">
+                        {% if rsvp_list %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Event</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in rsvp_list %}
+                                    <tr>
+                                        <td><strong>{{ item.rsvp.name }}</strong></td>
+                                        <td>{{ item.rsvp.email }}</td>
+                                        <td>{{ item.event_title }}</td>
+                                        <td>
+                                            {% if item.rsvp.status == 'going' %}
+                                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Going</span>
+                                            {% elif item.rsvp.status == 'maybe' %}
+                                                <span class="badge bg-warning text-dark"><i class="fas fa-question me-1"></i>Maybe</span>
+                                            {% else %}
+                                                <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Not Going</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small class="text-muted">{{ item.rsvp.created_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                                        <td>
+                                            <form action="{{ url_for('admin_delete_rsvp', rsvp_id=item.rsvp.id) }}" method="POST" onsubmit="return confirm('Delete RSVP from {{ item.rsvp.name }}?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-clipboard-check text-muted" style="font-size: 48px;"></i>
+                            <p class="text-muted mt-3">No RSVPs received yet</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Member Edit Notifications -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-bell"></i> Member Profile Updates</span>
+                        {% if unread_notifications_count > 0 %}
+                            <span class="badge bg-danger">{{ unread_notifications_count }} unread</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if member_edit_notifications %}
+                            {% for notification in member_edit_notifications %}
+                                {% set notif_member = notification.get_member() %}
+                                <div class="pending-item {% if not notification.is_read %}approved{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="item-title">
+                                                <i class="fas fa-user-edit text-primary me-1"></i>
+                                                {{ notif_member.name if notif_member else 'Unknown Member' }}
+                                                {% if not notification.is_read %}
+                                                    <span class="badge bg-danger ms-1">New</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="item-meta">
+                                                <i class="fas fa-clock me-1"></i>{{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                            </div>
+                                            <div class="mt-2">
+                                                {% set changes = notification.changes|fromjson %}
+                                                {% for change in changes %}
+                                                    <span class="badge bg-light text-dark border me-1 mb-1">{{ change }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="item-actions">
+                                            {% if notif_member %}
+                                            <a href="{{ url_for('admin_member_detail', member_id=notif_member.id) }}" 
+                                               class="btn btn-info btn-sm" title="View Member">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-bell-slash text-muted" style="font-size: 48px;"></i>
+                                <p class="text-muted mt-3">No member profile updates yet</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -634,6 +1317,10 @@
                                                     </div>
                                                 </div>
                                                 <div class="item-actions">
+                                                    <a href="{{ url_for('admin_member_detail', member_id=member.id) }}" 
+                                                       class="btn btn-info btn-sm" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
                                                     <a href="{{ url_for('approve_member', member_id=member.id) }}" 
                                                        class="btn btn-success btn-sm" title="Approve">
                                                         <i class="fas fa-check"></i>
@@ -713,5 +1400,411 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ===== ENHANCED SVG FAMILY TREE RENDERER (same as homepage) =====
+        const treeData = {{ tree|tojson }};
+
+        // Node dimensions
+        const MIN_NODE_WIDTH = 120;
+        const NODE_HEIGHT = 70;
+        const NODE_GAP_X = 30;
+        const NODE_GAP_Y = 80;
+        const COUPLE_GAP = 46;
+
+        // Colors
+        const COLOR_MALE = '#667eea';
+        const COLOR_FEMALE = '#ec4899';
+        const COLOR_ARROW = '#4B5563';
+        const COLOR_BG = '#ffffff';
+        const COLOR_BORDER = '#e9ecef';
+        const COLOR_ROOT_BG = '#fff9e6';
+        const COLOR_ROOT_BORDER = '#f39c12';
+        const COLOR_CARD_BG = '#ffffff';
+        const COLOR_CARD_BORDER = '#d1d5db';
+
+        // Utility: estimate text width
+        function textWidth(text, fontSize) {
+            if (!text) return 0;
+            return text.length * fontSize * 0.78;
+        }
+
+        // Fit a name into the box by wrapping at word boundaries
+        function wrapText(text, maxWidth, fontSize) {
+            const words = String(text || '').split(/\s+/);
+            const lines = [];
+            let line = '';
+            let maxLineWidth = 0;
+            words.forEach(word => {
+                const test = line ? line + ' ' + word : word;
+                if (textWidth(test, fontSize) > maxWidth && line) {
+                    lines.push(line);
+                    line = word;
+                } else {
+                    line = test;
+                }
+                maxLineWidth = Math.max(maxLineWidth, textWidth(line, fontSize));
+            });
+            if (line) lines.push(line);
+            return { lines, width: maxLineWidth };
+        }
+
+        // Compute the required box width/height for a person's name + relation
+        function measureNode(data) {
+            const nameFont = 11;
+            const padX = 30;
+            const topSpace = 24;
+            const relSpace = data.relation ? 18 : 0;
+            const lineH = 15;
+            const minW = 150;
+
+            const nameW = textWidth(data.name, nameFont);
+            let avail = Math.max(minW, nameW + padX);
+            let wrapped = wrapText(data.name, avail - padX, nameFont);
+            let neededW = wrapped.width + padX;
+            let neededH = topSpace + wrapped.lines.length * lineH + relSpace + 10;
+
+            const maxW = 280;
+            if (neededW > avail && avail < maxW) {
+                avail = Math.min(neededW, maxW);
+                wrapped = wrapText(data.name, avail - padX, nameFont);
+                neededW = wrapped.width + padX;
+                neededH = topSpace + wrapped.lines.length * lineH + relSpace + 10;
+            }
+
+            const width = Math.max(minW, Math.ceil(neededW));
+            const height = Math.max(NODE_HEIGHT, Math.ceil(neededH));
+            return { width, height, lines: wrapped.lines };
+        }
+
+        // Recursively compute the subtree width for a couple
+        function subtreeWidth(couple) {
+            const m1 = measureNode(couple);
+            const m2 = couple.spouse ? measureNode(couple.spouse) : null;
+            const own = m2 ? m1.width + m2.width + COUPLE_GAP : m1.width;
+            const kids = couple.children || [];
+            if (kids.length === 0) return own;
+            let total = 0;
+            kids.forEach(k => { total += subtreeWidth(k); });
+            total += (kids.length - 1) * NODE_GAP_X;
+            return Math.max(own, total);
+        }
+
+        // Build the tree layout
+        function buildLayout(couples) {
+            const nodes = [];
+            const edges = [];
+            const couplesInfo = [];
+            let maxY = 0;
+
+            function layoutCouple(couple, x, y, isRoot) {
+                const spouse = couple.spouse;
+                const hasSpouse = !!spouse;
+
+                const m1 = measureNode(couple);
+                const m2 = spouse ? measureNode(spouse) : null;
+                const coupleWidth = hasSpouse ? m1.width + m2.width + COUPLE_GAP : m1.width;
+                const startX = x - coupleWidth / 2;
+
+                const husbandNode = {
+                    id: couple.id, x: startX, y: y,
+                    width: m1.width, height: m1.height,
+                    data: Object.assign({}, couple, { isRoot: isRoot }), lines: m1.lines
+                };
+                nodes.push(husbandNode);
+
+                let wifeNode = null;
+                if (hasSpouse) {
+                    wifeNode = {
+                        id: spouse.id,
+                        x: startX + m1.width + COUPLE_GAP, y: y,
+                        width: m2.width, height: m2.height,
+                        data: Object.assign({}, spouse, { isRoot: isRoot }), lines: m2.lines
+                    };
+                    nodes.push(wifeNode);
+                }
+
+                couplesInfo.push({ husbandNode: husbandNode, wifeNode: wifeNode, hasSpouse: hasSpouse, y: y, height: Math.max(m1.height, m2 ? m2.height : 0) });
+
+                const children = couple.children || [];
+                if (children.length > 0) {
+                    let totalChildrenWidth = 0;
+                    const childWidths = children.map(c => {
+                        const w = subtreeWidth(c);
+                        totalChildrenWidth += w;
+                        return w;
+                    });
+                    totalChildrenWidth += (children.length - 1) * NODE_GAP_X;
+
+                    let childX = x - totalChildrenWidth / 2;
+                    const parentBottom = y + Math.max(m1.height, m2 ? m2.height : 0);
+                    const childY = parentBottom + NODE_GAP_Y;
+
+                    children.forEach((child, i) => {
+                        const w = childWidths[i];
+                        const childCenterX = childX + w / 2;
+
+                        edges.push({ from: couple.id, to: child.id });
+                        if (hasSpouse) edges.push({ from: spouse.id, to: child.id });
+
+                        layoutCouple(child, childCenterX, childY, false);
+                        childX += w + NODE_GAP_X;
+                    });
+
+                    maxY = Math.max(maxY, childY + 70);
+                } else {
+                    maxY = Math.max(maxY, y + Math.max(m1.height, m2 ? m2.height : 0));
+                }
+            }
+
+            let rootX = 0;
+            const rootGap = 40;
+            let maxRootRight = 0;
+            couples.forEach(function(couple) {
+                const w = subtreeWidth(couple);
+                const centerX = rootX + w / 2;
+                layoutCouple(couple, centerX, 30, true);
+                rootX += w + rootGap;
+                maxRootRight = rootX;
+            });
+
+            return { nodes: nodes, edges: edges, couplesInfo: couplesInfo, width: Math.max(maxRootRight, 300), height: maxY + 40 };
+        }
+
+        // Render the SVG
+        let currentSvg = null;
+
+        function renderDashboardTree() {
+            const container = document.getElementById('adminDashboardTreeSvg');
+            if (!container || !treeData || treeData.length === 0) return;
+
+            const layout = buildLayout(treeData);
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(svgNS, 'svg');
+            svg.setAttribute('width', layout.width);
+            svg.setAttribute('height', layout.height);
+            svg.setAttribute('viewBox', '0 0 ' + layout.width + ' ' + layout.height);
+            svg.setAttribute('preserveAspectRatio', 'xMidYMin meet');
+            svg.setAttribute('xmlns', svgNS);
+
+            // Defs: arrow marker + shadow filter + box gradients
+            const defs = document.createElementNS(svgNS, 'defs');
+            const marker = document.createElementNS(svgNS, 'marker');
+            marker.setAttribute('id', 'dash-arrow');
+            marker.setAttribute('viewBox', '0 0 18 18');
+            marker.setAttribute('refX', '14');
+            marker.setAttribute('refY', '9');
+            marker.setAttribute('markerWidth', '18');
+            marker.setAttribute('markerHeight', '18');
+            marker.setAttribute('orient', 'auto-start-reverse');
+            const mo = document.createElementNS(svgNS, 'path');
+            mo.setAttribute('d', 'M 0 0 L 18 9 L 0 18 z');
+            mo.setAttribute('fill', '#ffffff');
+            mo.setAttribute('stroke', COLOR_ARROW);
+            mo.setAttribute('stroke-width', '2');
+            const mp = document.createElementNS(svgNS, 'path');
+            mp.setAttribute('d', 'M 2.5 2.5 L 14 9 L 2.5 15.5 z');
+            mp.setAttribute('fill', COLOR_ARROW);
+            marker.appendChild(mo);
+            marker.appendChild(mp);
+            defs.appendChild(marker);
+
+            const filter = document.createElementNS(svgNS, 'filter');
+            filter.setAttribute('id', 'dash-shadow');
+            filter.setAttribute('x', '-20%');
+            filter.setAttribute('y', '-20%');
+            filter.setAttribute('width', '140%');
+            filter.setAttribute('height', '140%');
+            const feDrop = document.createElementNS(svgNS, 'feDropShadow');
+            feDrop.setAttribute('dx', '0');
+            feDrop.setAttribute('dy', '2');
+            feDrop.setAttribute('stdDeviation', '2');
+            feDrop.setAttribute('flood-color', '#000000');
+            feDrop.setAttribute('flood-opacity', '0.2');
+            filter.appendChild(feDrop);
+            defs.appendChild(filter);
+
+            const grad = document.createElementNS(svgNS, 'linearGradient');
+            grad.setAttribute('id', 'dash-node-grad');
+            grad.setAttribute('x1', '0');
+            grad.setAttribute('y1', '0');
+            grad.setAttribute('x2', '0');
+            grad.setAttribute('y2', '1');
+            const st1 = document.createElementNS(svgNS, 'stop');
+            st1.setAttribute('offset', '0%');
+            st1.setAttribute('stop-color', '#ffffff');
+            const st2 = document.createElementNS(svgNS, 'stop');
+            st2.setAttribute('offset', '100%');
+            st2.setAttribute('stop-color', '#f8fafc');
+            grad.appendChild(st1);
+            grad.appendChild(st2);
+            defs.appendChild(grad);
+
+            const rgrad = document.createElementNS(svgNS, 'linearGradient');
+            rgrad.setAttribute('id', 'dash-root-grad');
+            rgrad.setAttribute('x1', '0');
+            rgrad.setAttribute('y1', '0');
+            rgrad.setAttribute('x2', '0');
+            rgrad.setAttribute('y2', '1');
+            const rs1 = document.createElementNS(svgNS, 'stop');
+            rs1.setAttribute('offset', '0%');
+            rs1.setAttribute('stop-color', '#fffbe6');
+            const rs2 = document.createElementNS(svgNS, 'stop');
+            rs2.setAttribute('offset', '100%');
+            rs2.setAttribute('stop-color', '#fef3c7');
+            rgrad.appendChild(rs1);
+            rgrad.appendChild(rs2);
+            defs.appendChild(rgrad);
+
+            svg.appendChild(defs);
+
+            // Draw connector edges (bold orthogonal with halo + arrows)
+            const nodeMap = {};
+            layout.nodes.forEach(function(n) { nodeMap[n.id] = n; });
+
+            layout.edges.forEach(function(edge) {
+                const from = nodeMap[edge.from];
+                const to = nodeMap[edge.to];
+                if (!from || !to) return;
+                const x1 = from.x + from.width / 2;
+                const y1 = from.y + from.height;
+                const x2 = to.x + to.width / 2;
+                const y2 = to.y;
+                const midY = y1 + (y2 - y1) / 2;
+                const pathD = 'M ' + x1 + ' ' + y1 + ' V ' + midY + ' H ' + x2 + ' V ' + y2;
+
+                const halo = document.createElementNS(svgNS, 'path');
+                halo.setAttribute('d', pathD);
+                halo.setAttribute('stroke', '#ffffff');
+                halo.setAttribute('stroke-width', '8');
+                halo.setAttribute('fill', 'none');
+                halo.setAttribute('stroke-linecap', 'round');
+                halo.setAttribute('stroke-linejoin', 'round');
+                halo.setAttribute('opacity', '0.95');
+                svg.appendChild(halo);
+
+                const line = document.createElementNS(svgNS, 'path');
+                line.setAttribute('d', pathD);
+                line.setAttribute('stroke', COLOR_ARROW);
+                line.setAttribute('stroke-width', '3.5');
+                line.setAttribute('fill', 'none');
+                line.setAttribute('stroke-linecap', 'round');
+                line.setAttribute('stroke-linejoin', 'round');
+                line.setAttribute('marker-end', 'url(#dash-arrow)');
+                svg.appendChild(line);
+            });
+
+            // Draw couple connectors (double arrow + heart) BEFORE nodes
+            layout.couplesInfo.forEach(function(c) {
+                if (!c.hasSpouse) return;
+                const h = c.husbandNode;
+                const w = c.wifeNode;
+                const midY = c.y + c.height / 2;
+                const x1 = h.x + h.width;
+                const x2 = w.x;
+
+                const coupleLine = document.createElementNS(svgNS, 'line');
+                coupleLine.setAttribute('x1', x1 + 2);
+                coupleLine.setAttribute('y1', midY);
+                coupleLine.setAttribute('x2', x2 - 2);
+                coupleLine.setAttribute('y2', midY);
+                coupleLine.setAttribute('stroke', '#ec4899');
+                coupleLine.setAttribute('stroke-width', '3');
+                coupleLine.setAttribute('marker-start', 'url(#dash-arrow)');
+                coupleLine.setAttribute('marker-end', 'url(#dash-arrow)');
+                svg.appendChild(coupleLine);
+
+                const heartX = (x1 + x2) / 2;
+                const heart = document.createElementNS(svgNS, 'text');
+                heart.setAttribute('x', heartX);
+                heart.setAttribute('y', midY + 6);
+                heart.setAttribute('text-anchor', 'middle');
+                heart.setAttribute('font-size', '22');
+                heart.textContent = '❤️';
+                svg.appendChild(heart);
+            });
+
+            // Draw nodes
+            layout.nodes.forEach(function(node) {
+                const g = document.createElementNS(svgNS, 'g');
+                g.setAttribute('class', 'tree-node-card');
+                g.setAttribute('transform', 'translate(' + node.x + ', ' + node.y + ')');
+                g.setAttribute('filter', 'url(#dash-shadow)');
+
+                const rect = document.createElementNS(svgNS, 'rect');
+                rect.setAttribute('class', 'node-bg');
+                rect.setAttribute('width', node.width);
+                rect.setAttribute('height', node.height);
+                rect.setAttribute('rx', '12');
+                rect.setAttribute('fill', node.data.isRoot ? 'url(#dash-root-grad)' : 'url(#dash-node-grad)');
+                rect.setAttribute('stroke', node.data.isRoot ? COLOR_ROOT_BORDER : COLOR_CARD_BORDER);
+                rect.setAttribute('stroke-width', '2');
+                g.appendChild(rect);
+
+                const icon = document.createElementNS(svgNS, 'text');
+                icon.setAttribute('class', 'node-gender-icon');
+                icon.setAttribute('x', '12');
+                icon.setAttribute('y', '22');
+                const genderColor = node.data.gender === 'female' ? COLOR_FEMALE : COLOR_MALE;
+                icon.setAttribute('fill', genderColor);
+                icon.textContent = node.data.gender === 'female' ? '♀' : '♂';
+                g.appendChild(icon);
+
+                let nameY = 22;
+                const nameFont = 11;
+                node.lines.forEach(function(lineText) {
+                    const t = document.createElementNS(svgNS, 'text');
+                    t.setAttribute('x', '28');
+                    t.setAttribute('y', nameY + 2);
+                    t.setAttribute('font-size', nameFont);
+                    t.setAttribute('font-weight', '600');
+                    t.setAttribute('fill', '#0f172a');
+                    t.textContent = lineText;
+                    g.appendChild(t);
+                    nameY += 15;
+                });
+
+                if (node.data.relation) {
+                    const rel = document.createElementNS(svgNS, 'text');
+                    rel.setAttribute('x', '28');
+                    rel.setAttribute('y', nameY + 8);
+                    rel.setAttribute('font-size', '10');
+                    rel.setAttribute('fill', '#64748b');
+                    rel.textContent = node.data.relation;
+                    g.appendChild(rel);
+                }
+
+                if (node.data.isRoot) {
+                    const crown = document.createElementNS(svgNS, 'text');
+                    crown.setAttribute('x', node.width - 18);
+                    crown.setAttribute('y', '20');
+                    crown.setAttribute('font-size', '14');
+                    crown.textContent = '👑';
+                    g.appendChild(crown);
+                }
+
+                svg.appendChild(g);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(svg);
+            currentSvg = svg;
+        }
+
+        // Add child modal handler
+        document.addEventListener('DOMContentLoaded', function() {
+            // Render the visual tree
+            renderDashboardTree();
+
+            // Add child modal
+            document.querySelectorAll('.add-child-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const parentId = this.getAttribute('data-parent-id');
+                    const form = document.getElementById('addChildForm');
+                    form.action = '/admin/family-tree/' + parentId + '/add-child';
+                    document.getElementById('addChildModal').style.display = 'block';
+                });
+            });
+        });
+    </script>
 </body>
 </html>

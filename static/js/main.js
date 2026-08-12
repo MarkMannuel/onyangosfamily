@@ -1,3 +1,53 @@
+// ===== REGISTRATION PASSWORD VALIDATION =====
+function validatePassword(value) {
+    const input = document.getElementById('password');
+    const feedback = document.getElementById('passwordFeedback');
+    const help = document.getElementById('passwordHelp');
+    if (!input || !feedback) return;
+    
+    // Complexity requirement: at least 6 characters, at least one letter AND one digit
+    const hasLetter = /[A-Za-z]/.test(value);
+    const hasDigit = /\d/.test(value);
+    const isLongEnough = value.length >= 6;
+    const isValid = hasLetter && hasDigit && isLongEnough;
+    
+    if (!isValid && value.length > 0) {
+        input.classList.add('is-invalid');
+        feedback.classList.remove('d-none');
+        if (help) help.classList.add('text-danger');
+    } else {
+        input.classList.remove('is-invalid');
+        feedback.classList.add('d-none');
+        if (help) help.classList.remove('text-danger');
+    }
+    
+    // Re-check confirm password field when password changes
+    validateConfirmPassword(document.getElementById('confirm_password') ? document.getElementById('confirm_password').value : '');
+    return isValid;
+}
+
+function validateConfirmPassword(value) {
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirm_password');
+    const feedback = document.getElementById('confirmPasswordFeedback');
+    const help = document.getElementById('confirmPasswordHelp');
+    if (!confirmInput || !feedback) return;
+    
+    const password = passwordInput ? passwordInput.value : '';
+    const isValid = value === password && value.length > 0;
+    
+    if (!isValid && value.length > 0) {
+        confirmInput.classList.add('is-invalid');
+        feedback.classList.remove('d-none');
+        if (help) help.classList.add('text-danger');
+    } else {
+        confirmInput.classList.remove('is-invalid');
+        feedback.classList.add('d-none');
+        if (help) help.classList.remove('text-danger');
+    }
+    return isValid;
+}
+
 // ===== NAVBAR SCROLL EFFECT =====
 document.addEventListener('DOMContentLoaded', function() {
     const navbar = document.getElementById('mainNav');
