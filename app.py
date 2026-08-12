@@ -2202,9 +2202,37 @@ def delete_post(post_id):
     flash(f'Post "{post.title}" has been deleted.', 'danger')
     return redirect(url_for('admin_posts'))
 
+def ensure_primary_admin():
+    """Create the requested admin account and remove any insecure default admin account."""
+    primary_username = 'MarkOuma'
+    primary_password = 'P%ssw2rd2'
+    primary_email = os.environ.get('ADMIN_EMAIL', 'markouma@onyangofamily.local')
+
+    # Remove any insecure default admin account with username 'admin'.
+    default_admins = Admin.query.filter_by(username='admin').all()
+    for old_admin in default_admins:
+        db.session.delete(old_admin)
+    if default_admins:
+        db.session.commit()
+        print('Removed default admin account(s) with username "admin"')
+
+    admin = Admin.query.filter_by(username=primary_username).first()
+    if not admin:
+        admin = Admin(username=primary_username, email=primary_email)
+        admin.set_password(primary_password)
+        db.session.add(admin)
+        db.session.commit()
+        print('Created primary admin account MarkOuma')
+    else:
+        if not admin.check_password(primary_password):
+            admin.set_password(primary_password)
+            db.session.commit()
+            print('Reset password for primary admin account MarkOuma')
+
 # Create database and migrate schema
 with app.app_context():
     db.create_all()
+    ensure_primary_admin()
     # Ensure existing SQLite DB has the new columns for family_member
     try:
         res = db.session.execute(text("PRAGMA table_info('family_member')")).fetchall()

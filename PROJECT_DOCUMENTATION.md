@@ -110,17 +110,18 @@ The app is created in [app.py](app.py) with the following main configuration:
 ### Important configuration values
 - Database: `sqlite:///family_database.db`
 - Upload folder: `static/uploads`
-- Default admin login:
-  - username: `admin`
-  - password: `admin123`
+- Primary admin login:
+  - username: `MarkOuma`
+  - password: `P%ssw2rd2`
 
-> These defaults are convenient for local development, but they should be changed in production.
+> The application creates this admin account automatically if it is missing, and removes any insecure default admin account with username `admin`.
 
 ### Startup behavior
 When the application starts:
 - the database is created
 - the upload directory is ensured to exist
-- the admin account is created if missing
+- the primary admin account is created if missing
+- any insecure default admin account with username `admin` is removed
 - required database columns are added if they do not exist
 
 The app runs with:

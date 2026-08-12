@@ -140,7 +140,8 @@ site looks polished out of the box. Swap them at any time by following the steps
 above. Full instructions are also in `static/images/README.txt`.
 
 ## Important notes
-- The app uses a default admin account with the username admin and password admin123 when first started.
+- The app creates a primary admin account with the username `MarkOuma` and password `P%ssw2rd2` on startup if it does not already exist.
+- Any insecure default admin account with username `admin` is removed automatically.
 - Email sending is configured but may fail in a local/demo environment; in that case the app may fall back to showing the generated password in the browser.
 - For production use, the secret key, admin credentials, and mail settings should be changed.
 
