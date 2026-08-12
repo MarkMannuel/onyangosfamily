@@ -1895,6 +1895,17 @@ button,
 .main-nav .navbar-toggler {
     border: 1px solid rgba(255,255,255,0.2);
     padding: 8px 12px;
+    background: rgba(255,255,255,0.08);
+}
+
+.main-nav .navbar-toggler-icon {
+    display: inline-block;
+    width: 24px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 18'%3e%3cline y1='1' x2='24' y2='1' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'/%3e%3cline y1='9' x2='24' y2='9' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'/%3e%3cline y1='17' x2='24' y2='17' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 24px 18px;
 }
 
 .nav-icon-btn {
