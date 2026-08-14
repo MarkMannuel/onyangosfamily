@@ -5,11 +5,9 @@ function validatePassword(value) {
     const help = document.getElementById('passwordHelp');
     if (!input || !feedback) return;
     
-    // Complexity requirement: at least 6 characters, at least one letter AND one digit
-    const hasLetter = /[A-Za-z]/.test(value);
-    const hasDigit = /\d/.test(value);
+    // Requirement: at least 6 characters (letters, digits, and special characters allowed)
     const isLongEnough = value.length >= 6;
-    const isValid = hasLetter && hasDigit && isLongEnough;
+    const isValid = isLongEnough;
     
     if (!isValid && value.length > 0) {
         input.classList.add('is-invalid');

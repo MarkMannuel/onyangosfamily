@@ -30,7 +30,6 @@
                 <li><a href="{{ url_for('directory_page') }}"><i class="fas fa-address-book"></i>Directory</a></li>
                 <li><a href="{{ url_for('family_tree') }}"><i class="fas fa-sitemap"></i>Family Tree</a></li>
                 <li><a href="{{ url_for('events_page') }}"><i class="fas fa-calendar-alt"></i>Events & Gatherings</a></li>
-                <li><a href="{{ url_for('member_dashboard') }}#teams"><i class="fas fa-users"></i>My Teams</a></li>
                 <li><a href="{{ url_for('member_dashboard') }}#photos"><i class="fas fa-images"></i>My Photos</a></li>
                 <li><a href="{{ url_for('member_dashboard') }}#videos"><i class="fas fa-video"></i>My Videos</a></li>
                 <li><a href="{{ url_for('member_dashboard') }}#stories"><i class="fas fa-book-open"></i>Stories</a></li>
@@ -107,96 +106,38 @@
                     <h3 id="stat-videos">{{ videos|length }}</h3>
                     <p>My Videos</p>
                 </article>
-                <article class="stat-card" aria-labelledby="stat-notifications">
-                    <h3 id="stat-notifications">{{ unread_meeting_count }}</h3>
-                    <p>Unread Notifications</p>
-                </article>
             </div>
 
             <div class="widgets-grid">
-                <section class="widget-card" id="notifications" aria-labelledby="widget-notifications">
-                    <div class="widget-card-header">
-                        <h5 id="widget-notifications">Meeting Notifications</h5>
-                        <span class="badge bg-danger">{{ unread_meeting_count }} New</span>
-                    </div>
-                    <div class="widget-card-body">
-                        {% if my_notifications %}
-                            {% for notification in my_notifications %}
-                                {% set meeting = notification.get_meeting() %}
-                                {% if meeting %}
-                                <div class="widget-item">
-                                    <div>
-                                        <strong>{{ meeting.title }}</strong>
-                                        <p class="small text-muted mb-1">{{ meeting.meeting_date.strftime('%b %d, %Y %H:%M') }} • {{ meeting.duration_minutes }} min</p>
-                                        {% if meeting.get_team() %}
-                                        <p class="small text-muted mb-0"><i class="fas fa-users me-1"></i>{{ meeting.get_team().name }}</p>
-                                        {% endif %}
-                                    </div>
-                                    {% if meeting.meeting_link %}
-                                    <a href="{{ meeting.meeting_link }}" target="_blank" class="btn btn-sm btn-primary">Join</a>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                            <form action="{{ url_for('mark_meetings_read') }}" method="POST" class="widget-action-row">
-                                <button type="submit" class="btn btn-outline-secondary">Mark all read</button>
-                            </form>
-                        {% else %}
-                            <div class="widget-empty">
-                                <i class="fas fa-bell-slash"></i>
-                                <p>No new meeting notifications.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </section>
-
-                <section class="widget-card" id="teams" aria-labelledby="widget-teams">
-                    <div class="widget-card-header">
-                        <h5 id="widget-teams">My Teams</h5>
-                    </div>
-                    <div class="widget-card-body">
-                        {% if my_teams %}
-                            {% for team in my_teams %}
-                            <div class="widget-item team-item">
-                                <div>
-                                    <strong>{{ team.name }}</strong>
-                                    {% if team.description %}
-                                    <p class="small text-muted mb-0">{{ team.description|truncate(80) }}</p>
-                                    {% endif %}
-                                </div>
-                                <a href="{{ url_for('leave_team', team_id=team.id) }}" class="btn btn-sm btn-outline-danger">Leave</a>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="widget-empty">
-                                <i class="fas fa-users"></i>
-                                <p>No teams joined yet.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </section>
-
+                <!-- ===== MY PHOTOS ===== -->
                 <section class="widget-card" id="photos" aria-labelledby="widget-photos">
                     <div class="widget-card-header">
-                        <h5 id="widget-photos">My Photos</h5>
+                        <h5 id="widget-photos"><i class="fas fa-images me-2 text-primary"></i>My Photos</h5>
+                        <span class="media-count-badge">{{ photos|length }} photo{{ 's' if photos|length != 1 else '' }}</span>
                     </div>
                     <div class="widget-card-body gallery-grid">
                         {% if photos and photos|length > 0 %}
-                            {% for photo in photos[:8] %}
+                            {% for photo in photos %}
                             <div class="media-card photo-card">
                                 <div class="photo-wrapper">
-                                    <img id="photo-img-{{ photo.id }}" src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}" alt="{{ photo.caption or 'Photo' }}" class="photo-img" data-caption="{{ photo.caption or '' }}">
+                                    <img src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}" alt="{{ photo.caption or 'Photo' }}" class="photo-img js-open-lightbox" data-src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}" data-caption="{{ photo.caption or '' }}">
+
+                                    <div class="media-hover-actions">
+                                        <button type="button" class="hover-action-btn js-open-lightbox" data-src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}" data-caption="{{ photo.caption or '' }}" title="View photo" aria-label="View photo">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
+                                        <a href="{{ url_for('static', filename='uploads/' ~ photo.filename) }}" download class="hover-action-btn" title="Download" aria-label="Download photo">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
 
                                     <div class="dropdown">
-                                        <button type="button" class="dropdown-btn" onclick="togglePhotoMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="More options for photo">
+                                        <button type="button" class="dropdown-btn js-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-label="More options for photo">
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <button type="button" class="dropdown-item" onclick="openPhotoFullscreen('photo-img-{{ photo.id }}')">
-                                                <i class="fas fa-expand"></i> Fullscreen
-                                            </button>
-                                            <button type="button" class="dropdown-item" onclick="openPhotoPiP('photo-img-{{ photo.id }}')">
-                                                <i class="fas fa-clone"></i> Picture in picture
+                                            <button type="button" class="dropdown-item js-open-lightbox" data-src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}" data-caption="{{ photo.caption or '' }}">
+                                                <i class="fas fa-expand"></i> View Fullscreen
                                             </button>
                                             <a href="{{ url_for('static', filename='uploads/' ~ photo.filename) }}" download class="dropdown-item">
                                                 <i class="fas fa-download"></i> Download
@@ -204,14 +145,17 @@
                                             <a href="{{ url_for('edit_member_photo', photo_id=photo.id) }}" class="dropdown-item">
                                                 <i class="fas fa-edit"></i> Edit Caption
                                             </a>
-                                            <a href="{{ url_for('delete_member_photo', photo_id=photo.id) }}" class="dropdown-item text-danger">
+                                            <button type="button" class="dropdown-item text-danger js-delete-btn" data-type="photo" data-id="{{ photo.id }}" data-name="{{ photo.caption or 'this photo' }}">
                                                 <i class="fas fa-trash"></i> Delete
-                                            </a>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="media-card-info">
-                                    <span>{{ photo.caption or 'No caption' }}</span>
+                                    <div class="media-caption">
+                                        <span>{{ photo.caption or 'No caption' }}</span>
+                                        <small class="media-date"><i class="far fa-calendar-alt me-1"></i>{{ photo.created_at.strftime('%b %d, %Y') }}</small>
+                                    </div>
                                 </div>
                             </div>
                             {% endfor %}
@@ -219,25 +163,33 @@
                             <div class="widget-empty">
                                 <i class="fas fa-camera-retro"></i>
                                 <p>No photos uploaded yet.</p>
+                                <a href="{{ url_for('upload_photo', member_id=member.id) }}" class="btn btn-primary btn-sm mt-2"><i class="fas fa-upload me-1"></i>Upload a Photo</a>
                             </div>
                         {% endif %}
                     </div>
                 </section>
 
+                <!-- ===== MY VIDEOS ===== -->
                 <section class="widget-card" id="videos" aria-labelledby="widget-videos">
                     <div class="widget-card-header">
-                        <h5 id="widget-videos">My Videos</h5>
+                        <h5 id="widget-videos"><i class="fas fa-video me-2 text-danger"></i>My Videos</h5>
+                        <span class="media-count-badge">{{ videos|length }} video{{ 's' if videos|length != 1 else '' }}</span>
                     </div>
                     <div class="widget-card-body video-grid">
                         {% if videos and videos|length > 0 %}
-                            {% for video in videos[:6] %}
+                            {% for video in videos %}
                             <div class="media-card video-card">
-                                <video src="{{ url_for('static', filename='uploads/' ~ video.filename) }}" muted controls playsinline preload="metadata"></video>
+                                <div class="video-wrapper">
+                                    <video src="{{ url_for('static', filename='uploads/' ~ video.filename) }}" controls playsinline preload="metadata"></video>
+                                </div>
                                 <div class="media-card-info">
-                                    <span>{{ video.caption or 'No caption' }}</span>
+                                    <div class="media-caption">
+                                        <span>{{ video.caption or 'No caption' }}</span>
+                                        <small class="media-date"><i class="far fa-calendar-alt me-1"></i>{{ video.created_at.strftime('%b %d, %Y') }}</small>
+                                    </div>
                                     <div class="media-actions">
-                                        <a href="{{ url_for('edit_member_video', video_id=video.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                        <a href="{{ url_for('delete_member_video', video_id=video.id) }}" class="btn btn-sm btn-outline-danger">Delete</a>
+                                        <a href="{{ url_for('edit_member_video', video_id=video.id) }}" class="btn btn-sm btn-outline-primary" title="Edit caption"><i class="fas fa-edit"></i></a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger js-delete-btn" data-type="video" data-id="{{ video.id }}" data-name="{{ video.caption or 'this video' }}" title="Delete video"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -246,14 +198,16 @@
                             <div class="widget-empty">
                                 <i class="fas fa-video"></i>
                                 <p>No videos uploaded yet.</p>
+                                <a href="{{ url_for('upload_photo', member_id=member.id) }}" class="btn btn-primary btn-sm mt-2"><i class="fas fa-upload me-1"></i>Upload a Video</a>
                             </div>
                         {% endif %}
                     </div>
                 </section>
 
+                <!-- ===== RECENT STORIES ===== -->
                 <section class="widget-card" id="stories" aria-labelledby="widget-stories">
                     <div class="widget-card-header">
-                        <h5 id="widget-stories">Recent Stories</h5>
+                        <h5 id="widget-stories"><i class="fas fa-book-open me-2 text-success"></i>Recent Stories</h5>
                     </div>
                     <div class="widget-card-body">
                         {% if posts and posts|length > 0 %}
@@ -279,67 +233,50 @@
     </main>
 </div>
 
-<div id="photoFullscreenModal" class="fullscreen-modal" onclick="closePhotoFullscreen()">
-    <span class="close-btn">&times;</span>
-    <img id="fullscreen-modal-img" class="fullscreen-content" alt="Fullscreen photo">
-</div>
-
+<!-- ===== PHOTO LIGHTBOX ===== -->
 <div id="lightboxModal" class="lightbox-modal" style="display:none;">
-    <button onclick="closeLightbox()" class="lightbox-close">&times;</button>
+    <button onclick="closeLightbox()" class="lightbox-close" aria-label="Close">&times;</button>
     <img id="lightboxImg" src="" alt="" class="lightbox-image">
     <p id="lightboxCaption" class="lightbox-caption"></p>
     <div class="lightbox-actions">
-        <a id="downloadPhotoBtn" href="#" download class="btn btn-sm btn-light">Download</a>
-        <a id="openPhotoTabBtn" href="#" target="_blank" class="btn btn-sm btn-outline-light">Open in new tab</a>
+        <a id="downloadPhotoBtn" href="#" download class="btn btn-sm btn-light"><i class="fas fa-download me-1"></i>Download</a>
+        <a id="openPhotoTabBtn" href="#" target="_blank" class="btn btn-sm btn-outline-light"><i class="fas fa-external-link-alt me-1"></i>Open in new tab</a>
     </div>
 </div>
+
+<!-- ===== DELETE CONFIRMATION MODAL ===== -->
+<div id="deleteConfirmModal" class="delete-modal" style="display:none;">
+    <div class="delete-modal-content">
+        <div class="delete-modal-icon">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <h3 id="deleteModalTitle">Delete item?</h3>
+        <p>Are you sure you want to delete <strong id="deleteItemName">this item</strong>? This action cannot be undone.</p>
+        <form id="deleteForm" method="POST" action="">
+            <div class="delete-modal-actions">
+                <button type="button" class="btn btn-outline-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash me-1"></i>Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-function togglePhotoMenu(event) {
-    event.stopPropagation();
-    const dropdown = event.currentTarget.closest('.dropdown');
-    dropdown.classList.toggle('active');
-}
-
-function openLightbox(src, caption) {
-    const lightbox = document.getElementById('lightboxModal');
-    const img = document.getElementById('lightboxImg');
-    const captionEl = document.getElementById('lightboxCaption');
-    const downloadBtn = document.getElementById('downloadPhotoBtn');
-    const openTabBtn = document.getElementById('openPhotoTabBtn');
-
-    img.src = src;
-    captionEl.textContent = caption || '';
-    downloadBtn.href = src;
-    openTabBtn.href = src;
-    lightbox.style.display = 'flex';
-}
-
-document.querySelectorAll('.lightbox-img').forEach(img => {
-    img.addEventListener('click', function() {
-        openLightbox(this.dataset.src, this.dataset.caption);
-    });
-});
-
-document.querySelectorAll('.dropdown-btn').forEach(btn => {
-    btn.addEventListener('click', function(event) {
+// ===== DROPDOWN MENU =====
+document.addEventListener('click', function(event) {
+    const toggle = event.target.closest('.js-dropdown-toggle');
+    if (toggle) {
         event.preventDefault();
         event.stopPropagation();
-        const dropdown = this.closest('.dropdown');
+        const dropdown = toggle.closest('.dropdown');
         dropdown.classList.toggle('active');
-    });
-});
-
-document.addEventListener('click', function() {
+        return;
+    }
+    // Close any open dropdowns when clicking elsewhere
     document.querySelectorAll('.dropdown.active').forEach(dropdown => dropdown.classList.remove('active'));
 });
 
-function togglePhotoMenu(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    const dropdown = event.currentTarget.closest('.dropdown');
-    dropdown.classList.toggle('active');
-}
-
+// ===== LIGHTBOX =====
 function openLightbox(src, caption) {
     const lightbox = document.getElementById('lightboxModal');
     const img = document.getElementById('lightboxImg');
@@ -354,85 +291,60 @@ function openLightbox(src, caption) {
     lightbox.style.display = 'flex';
 }
 
-async function enablePhotoPiP(image) {
-    if (!('pictureInPictureEnabled' in document)) {
-        alert('Picture-in-Picture is not supported by your browser.');
-        return;
-    }
-
-    const canvas = document.createElement('canvas');
-    const width = image.naturalWidth || 640;
-    const height = image.naturalHeight || 360;
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(image, 0, 0, width, height);
-
-    const stream = canvas.captureStream();
-    const video = document.createElement('video');
-    video.srcObject = stream;
-    video.muted = true;
-    video.playsInline = true;
-
-    try {
-        await video.play();
-        await video.requestPictureInPicture();
-    } catch (err) {
-        console.error('Picture-in-Picture failed:', err);
-        alert('Could not enable Picture-in-Picture for this photo.');
-    }
+function closeLightbox() {
+    document.getElementById('lightboxModal').style.display = 'none';
 }
 
-function closeLightbox() { document.getElementById('lightboxModal').style.display = 'none'; }
+document.addEventListener('click', function(event) {
+    const trigger = event.target.closest('.js-open-lightbox');
+    if (trigger) {
+        openLightbox(trigger.dataset.src, trigger.dataset.caption);
+    }
+});
 
-function openPhotoFullscreen(imageId) {
-    const img = document.getElementById(imageId);
-    const modal = document.getElementById('photoFullscreenModal');
-    const modalImg = document.getElementById('fullscreen-modal-img');
+// ===== DELETE CONFIRMATION =====
+function confirmDelete(type, id, name) {
+    const modal = document.getElementById('deleteConfirmModal');
+    const form = document.getElementById('deleteForm');
+    const itemName = document.getElementById('deleteItemName');
+    const title = document.getElementById('deleteModalTitle');
 
-    modalImg.src = img.src;
+    itemName.textContent = name || 'this item';
+    title.textContent = 'Delete ' + (type === 'photo' ? 'Photo' : 'Video') + '?';
+
+    if (type === 'photo') {
+        form.action = "{{ url_for('delete_member_photo', photo_id=0) }}".replace('0', id);
+    } else {
+        form.action = "{{ url_for('delete_member_video', video_id=0) }}".replace('0', id);
+    }
+
     modal.style.display = 'flex';
 }
 
-function closePhotoFullscreen() {
-    document.getElementById('photoFullscreenModal').style.display = 'none';
+function closeDeleteModal() {
+    document.getElementById('deleteConfirmModal').style.display = 'none';
 }
 
-async function openPhotoPiP(imageId) {
-    const img = document.getElementById(imageId);
-    if (!document.pictureInPictureEnabled) {
-        alert('Picture-in-Picture is not supported by your browser.');
-        return;
+document.addEventListener('click', function(event) {
+    const btn = event.target.closest('.js-delete-btn');
+    if (btn) {
+        confirmDelete(btn.dataset.type, btn.dataset.id, btn.dataset.name);
     }
-
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth || 800;
-    canvas.height = img.naturalHeight || 600;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    const video = document.createElement('video');
-    video.srcObject = canvas.captureStream();
-    video.muted = true;
-    video.playsInline = true;
-
-    try {
-        await video.play();
-        await video.requestPictureInPicture();
-    } catch (err) {
-        console.error('Picture-in-Picture failed:', err);
-        alert('Could not enable Picture-in-Picture for this photo.');
-    }
-}
-
-window.addEventListener('click', function() {
-    document.querySelectorAll('.dropdown.active').forEach(dropdown => dropdown.classList.remove('active'));
 });
 
+// Close modals on Escape key
 window.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeLightbox();
-        closePhotoFullscreen();
+        closeDeleteModal();
     }
 });
+
+// Close delete modal when clicking outside the content box
+document.getElementById('deleteConfirmModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
 {% endblock %}

@@ -391,6 +391,12 @@
                                             {% else %}
                                                 <span class="badge bg-secondary">Past</span>
                                             {% endif %}
+                                            <br>
+                                            {% if event.is_public %}
+                                                <span class="badge bg-info mt-1"><i class="fas fa-globe me-1"></i>Public</span>
+                                            {% else %}
+                                                <span class="badge bg-danger mt-1"><i class="fas fa-lock me-1"></i>Members Only</span>
+                                            {% endif %}
                                         </td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-warning" 
@@ -457,9 +463,22 @@
                                         <label class="form-label">Description</label>
                                         <textarea name="description" class="form-control" rows="3">{{ event.description or '' }}</textarea>
                                     </div>
-                                    <div class="form-check">
-                                        <input type="checkbox" name="is_public" class="form-check-input" id="isPublic{{ event.id }}" {% if event.is_public %}checked{% endif %}>
-                                        <label class="form-check-label" for="isPublic{{ event.id }}">Public Event</label>
+                                    <div class="mb-3">
+                                        <label class="form-label d-block"><i class="fas fa-globe text-primary me-1"></i>Who can see this event?</label>
+                                        <div class="d-flex gap-3 mt-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="visibility" id="editVisPublic{{ event.id }}" value="public" {% if event.is_public %}checked{% endif %}>
+                                                <label class="form-check-label" for="editVisPublic{{ event.id }}">
+                                                    <i class="fas fa-globe text-success me-1"></i>Public Website <small class="text-muted">(visible to everyone)</small>
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="visibility" id="editVisPrivate{{ event.id }}" value="private" {% if not event.is_public %}checked{% endif %}>
+                                                <label class="form-check-label" for="editVisPrivate{{ event.id }}">
+                                                    <i class="fas fa-lock text-danger me-1"></i>Members Only <small class="text-muted">(registered members portal)</small>
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer">

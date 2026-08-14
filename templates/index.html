@@ -4,426 +4,304 @@
 
 {% block content %}
 <!-- ===== HERO SECTION WITH SINGLE FAMILY BACKGROUND IMAGE ===== -->
-<section class="hero-section" style="background: linear-gradient(to bottom, rgba(15,23,42,0.35) 0%, rgba(15,23,42,0.65) 50%, rgba(10,16,32,0.85) 100%), url('{{ url_for('static', filename='uploads/member_2_20260714080049_family.jpg') }}') center/cover no-repeat;">
-    <div class="container hero-content-center">
-        <span class="hero-badge animate-fadeInLeft">
-            <i class="fas fa-heart me-2 text-gradient"></i>Building our legacy together
-        </span>
-        <h1 class="animate-fadeInLeft">Welcome to the Onyango Family</h1>
-        <p class="hero-lead animate-fadeInLeft">A community bound by love, tradition, and shared heritage. Explore the family tree, share stories, and preserve memories together.</p>
-        <div class="d-flex flex-wrap gap-3 justify-content-lg-start justify-content-center">
-            <a href="{{ url_for('register_member') }}" class="btn-hero-primary">
-                <i class="fas fa-user-plus me-2"></i>Join Our Family
-            </a>
-            <a href="{{ url_for('stories') }}" class="btn-hero-secondary">
-                <i class="fas fa-book-open me-2"></i>Read Our Stories
-            </a>
+<section class="hero-section" style="background: linear-gradient(rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.20)), url('/images/family1.JPG') center 30% / cover no-repeat;">
+    <div class="container text-center">
+        <span class="badge-tagline">BUILDING OUR LEGACY TOGETHER</span>
+        <h1 class="hero-title">Welcome to the Onyango Family</h1>
+        <p class="hero-description">A community bound by love, tradition, and shared heritage. Explore the family tree, share stories, and preserve memories together.</p>
+        <div class="hero-buttons d-flex flex-column flex-sm-row justify-content-center gap-3 mt-4">
+            <a href="{{ url_for('register_member') }}" class="btn btn-primary">Join Our Family</a>
+            <a href="{{ url_for('stories') }}" class="btn btn-outline-light">Read Our Stories</a>
         </div>
     </div>
 </section>
 
-<!-- Family Members -->
-<section class="section-padding">
+<!-- ===== FAMILY MEMBERS SECTION ===== -->
+<section class="py-5 bg-light">
     <div class="container">
-        <h2 class="section-title animate-fadeIn">Our Family Members</h2>
-        <p class="section-subtitle animate-fadeIn">Meet the pillars of our family who preserve our heritage</p>
-        <div class="row stagger-children">
-            {% for member in family_members[:4] %}
-            <div class="col-md-3 mb-4">
-                <div class="member-card">
-                    <div class="avatar">
+        <div class="text-center mb-5">
+            <span class="badge-tagline">OUR PEOPLE</span>
+            <h2 class="section-title mb-3">Meet Our Family Members</h2>
+            <p class="section-subtitle">Connect with the wonderful people who make up the Onyango family</p>
+        </div>
+        
+        {% if family_members %}
+        <div class="row g-4">
+            {% for member in family_members[:8] %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body text-center">
                         {% if member.profile_picture %}
-                        <img src="{{ url_for('static', filename='uploads/' ~ member.profile_picture) }}" alt="{{ member.name }}">
+                        <div style="width: 120px; height: 120px; margin: 0 auto 20px; border-radius: 50%; overflow: hidden; background: #f0f0f0; border: 3px solid var(--primary);">
+                            <img src="{{ url_for('static', filename='uploads/' + member.profile_picture) }}" alt="{{ member.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
                         {% else %}
-                        <i class="fas fa-user"></i>
+                        <div style="width: 120px; height: 120px; margin: 0 auto 20px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">
+                            <i class="fas fa-user"></i>
+                        </div>
                         {% endif %}
-                    </div>
-                    <h5 class="member-name">
-                        <a href="{{ url_for('member_profile', member_id=member.id) }}">{{ member.name }}</a>
-                    </h5>
-                    <p class="member-role">{{ member.role }}</p>
-                    <p class="small text-muted">{{ member.summary[:80] if member.summary else '' }}{% if member.summary and member.summary|length > 80 %}...{% endif %}</p>
-                    <div class="mt-3 d-flex gap-2 justify-content-center">
-                        <a href="{{ url_for('member_profile', member_id=member.id) }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-user me-1"></i>Profile
-                        </a>
+                        <h5 class="card-title mb-2">{{ member.name }}</h5>
+                        {% if member.role %}
+                        <p class="text-muted small mb-2">{{ member.role }}</p>
+                        {% endif %}
+                        {% if member.relationship %}
+                        <p class="text-muted small mb-3">{{ member.relationship }}</p>
+                        {% endif %}
+                        {% if member.summary %}
+                        <p class="card-text small mb-3">{{ member.summary[:100] }}{% if member.summary|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+                        <a href="{{ url_for('member_profile', member_id=member.id) }}" class="btn btn-sm btn-outline-primary">View Profile</a>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
         <div class="text-center mt-5">
-            <a href="{{ url_for('about') }}" class="btn btn-outline-primary">
-                <i class="fas fa-users me-2"></i>Meet All Members
-            </a>
+            <a href="{{ url_for('directory_page') }}" class="btn btn-primary btn-lg">View All Members</a>
         </div>
+        {% else %}
+        <div class="text-center p-5">
+            <p class="text-muted">No family members to display yet. <a href="{{ url_for('register_member') }}">Join our family</a>!</p>
+        </div>
+        {% endif %}
     </div>
 </section>
 
-<!-- Stories -->
-<section class="section-padding" style="background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);">
+<!-- ===== ANNOUNCEMENTS & EVENTS SECTION ===== -->
+<section class="py-5">
     <div class="container">
-        <h2 class="section-title animate-fadeIn">Family Stories</h2>
-        <p class="section-subtitle animate-fadeIn">Discover the rich history and cherished memories</p>
-        <div class="row stagger-children">
+        <div class="text-center mb-5">
+            <span class="badge-tagline">STAY INFORMED</span>
+            <h2 class="section-title mb-3">Announcements & Events</h2>
+            <p class="section-subtitle">Stay updated with family news, announcements, and upcoming gatherings</p>
+        </div>
+
+        {% if announcements or events %}
+        <div class="row g-4">
+            {% if announcements %}
+                {% for announcement in announcements %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="card-body d-flex flex-column">
+                            <span class="badge bg-info text-dark align-self-start mb-2">Announcement</span>
+                            <h5 class="card-title mb-2">{{ announcement.title }}</h5>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-calendar me-1"></i> {{ announcement.created_at.strftime('%B %d, %Y') }}
+                            </p>
+                            <p class="card-text text-muted flex-grow-1 mb-3">{{ announcement.body[:150] }}{% if announcement.body|length > 150 %}...{% endif %}</p>
+                            <a href="{{ url_for('announcements_page') }}" class="btn btn-outline-primary btn-sm mt-auto">View Announcement</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if events %}
+                {% for event in events %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary">{{ event.event_type|capitalize }}</span>
+                            </div>
+                            <h5 class="card-title mb-2">{{ event.title }}</h5>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-calendar me-1"></i> {{ event.event_date.strftime('%B %d, %Y %H:%M') }}
+                            </p>
+                            {% if event.location %}
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt me-1"></i> {{ event.location }}
+                            </p>
+                            {% endif %}
+                            {% if event.description %}
+                            <p class="card-text text-muted flex-grow-1 mb-3">{{ event.description[:150] }}{% if event.description|length > 150 %}...{% endif %}</p>
+                            {% endif %}
+                            <a href="{{ url_for('events_page') }}" class="btn btn-outline-primary btn-sm mt-auto">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="{{ url_for('announcements_page') }}" class="btn btn-primary btn-lg me-2">View Announcements</a>
+            <a href="{{ url_for('events_page') }}" class="btn btn-primary btn-lg">View All Events</a>
+        </div>
+        {% else %}
+        <div class="text-center p-5">
+            <p class="text-muted">No announcements or upcoming events yet. Check back soon!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ===== FAMILY STORIES SECTION ===== -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge-tagline">OUR HERITAGE</span>
+            <h2 class="section-title mb-3">Family Stories</h2>
+            <p class="section-subtitle">Read the stories and experiences shared by our family members</p>
+        </div>
+        
+        {% if stories %}
+        <div class="row g-4">
             {% for story in stories %}
-            <div class="col-md-4 mb-4">
-                <div class="story-card">
-                    <div class="story-image">
-                        {% if story.image_url %}
-                        <img src="{{ story.image_url }}" alt="{{ story.title }}">
-                        {% else %}
-                        <i class="fas fa-book-open"></i>
-                        {% endif %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift story-card">
+                    {% if story.image_url %}
+                    <div class="story-image" style="height: 250px; overflow: hidden; background: #f0f0f0;">
+                        <img src="{{ url_for('static', filename='uploads/' + story.image_url) }}" alt="{{ story.title }}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <div class="story-body">
-                        <h5 class="story-title">{{ story.title }}</h5>
-                        <p class="story-excerpt">{{ story.body[:120] }}{% if story.body|length > 120 %}...{% endif %}</p>
+                    {% else %}
+                    <div class="story-image" style="height: 250px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-book fa-3x"></i>
                     </div>
-                    <div class="story-meta">
-                        <span><i class="fas fa-user me-1"></i>{{ story.author or 'Anonymous' }}</span>
-                        <span><i class="fas fa-calendar me-1"></i>{{ story.created_at.strftime('%b %d, %Y') }}</span>
-                    </div>
-                    <div class="px-3 pb-3 d-flex gap-2">
-                        <button class="btn btn-outline-secondary btn-sm flex-fill"
-                                onclick="openStory('{{ story.title|replace("\'","\\'")|replace('"','\\"') }}','{{ story.body|replace("\'","\\'")|replace('"','\\"')|replace('\n','\\n') }}','{{ story.author or 'Anonymous' }}','{{ story.created_at.strftime('%b %d, %Y') }}')">
-                            <i class="fas fa-expand me-1"></i>Expand
-                        </button>
-                        <a href="{{ url_for('story_detail', post_id=story.id) }}" class="btn btn-outline-primary btn-sm flex-fill">
-                            Read Full <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-2">{{ story.title }}</h5>
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-user me-1"></i> {{ story.author }}
+                        </p>
+                        <p class="card-text text-muted flex-grow-1 mb-3">{{ story.body[:150] }}{% if story.body|length > 150 %}...{% endif %}</p>
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-calendar me-1"></i> {{ story.created_at.strftime('%B %d, %Y') }}
+                        </p>
+                        <a href="{{ url_for('story_detail', post_id=story.id) }}" class="btn btn-primary btn-sm">Read Story</a>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
         <div class="text-center mt-5">
-            <a href="{{ url_for('stories') }}" class="btn btn-primary me-3">
-                <i class="fas fa-book me-2"></i>View All Stories
-            </a>
-            <a href="{{ url_for('submit_story') }}" class="btn btn-outline-primary">
-                <i class="fas fa-pen me-2"></i>Share Your Story
-            </a>
+            <a href="{{ url_for('stories') }}" class="btn btn-primary btn-lg">View All Stories</a>
         </div>
+        {% else %}
+        <div class="text-center p-5">
+            <p class="text-muted">No stories shared yet. <a href="{{ url_for('submit_story') }}">Be the first to share</a>!</p>
+        </div>
+        {% endif %}
     </div>
 </section>
 
-<!-- Photos Section -->
-{% if photos and photos|length > 0 %}
-<section class="section-padding">
+<!-- ===== FAMILY MEMORIES SECTION ===== -->
+<section class="py-5">
     <div class="container">
-        <h2 class="section-title animate-fadeIn">Family Photos</h2>
-        <p class="section-subtitle animate-fadeIn">Capturing moments that matter</p>
-        <div class="row stagger-children">
-            {% for photo in photos %}
-            <div class="col-md-4 col-6 mb-4">
-                <div class="card border-0 shadow-sm overflow-hidden" style="cursor:pointer;"
-                     onclick="openPhoto('{{ url_for('static', filename='uploads/' ~ photo.filename) }}','{{ photo.caption or '' }}')">
-                    <img src="{{ url_for('static', filename='uploads/' ~ photo.filename) }}"
-                         alt="{{ photo.caption or 'Family Photo' }}"
-                         style="height:220px; object-fit:cover; width:100%;">
-                    {% if photo.caption %}
-                    <div class="card-body p-2">
-                        <small class="text-muted">{{ photo.caption }}</small>
+        <div class="text-center mb-5">
+            <span class="badge-tagline">CAPTURED MEMORIES</span>
+            <h2 class="section-title mb-3">Family Stories & Memories</h2>
+            <p class="section-subtitle">Click on any photo or video to view it directly</p>
+        </div>
+        
+        {% if past_media %}
+        <div class="row g-4">
+            {% for moment in past_media[:6] %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift moment-card">
+                    {% if moment.media_type == 'video' %}
+                    <div class="moment-image lightbox-trigger" data-type="video" data-src="{{ url_for('static', filename='uploads/' + moment.filename) }}" data-caption="{{ moment.title }}" style="height: 250px; overflow: hidden; background: #1a1a1a; position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <i class="fas fa-play fa-3x" style="color: var(--secondary); position: absolute; z-index: 2;"></i>
+                        <img src="{{ url_for('static', filename='uploads/' + moment.filename) }}" alt="{{ moment.title }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
                     </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="text-center mt-4">
-            <a href="{{ url_for('gallery') }}" class="btn btn-outline-primary">
-                <i class="fas fa-images me-2"></i>View Full Gallery
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- Videos Section -->
-{% if videos and videos|length > 0 %}
-<section class="section-padding" style="background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);">
-    <div class="container">
-        <h2 class="section-title animate-fadeIn">Family Videos</h2>
-        <p class="section-subtitle animate-fadeIn">Relive our cherished moments</p>
-        <div class="row stagger-children">
-            {% for video in videos %}
-            <div class="col-md-4 col-6 mb-4">
-                <div class="card border-0 shadow-sm overflow-hidden">
-                    <div style="position:relative; background:#000; height:220px;">
-                        <video style="width:100%; height:100%; object-fit:cover;" muted playsinline preload="metadata">
-                            <source src="{{ url_for('static', filename='uploads/' ~ video.filename) }}">
-                        </video>
-                        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;">
-                            <button class="btn btn-light btn-sm rounded-circle video-play-btn" style="width:44px;height:44px;" title="Play/Pause">
-                                <i class="fas fa-play"></i>
-                            </button>
-                            <button class="btn btn-light btn-sm rounded-circle video-max-btn" style="width:44px;height:44px;" title="Maximize"
-                                    data-src="{{ url_for('static', filename='uploads/' ~ video.filename) }}"
-                                    data-caption="{{ video.caption or '' }}">
-                                <i class="fas fa-expand"></i>
-                            </button>
-                        </div>
-                    </div>
-                    {% if video.caption %}
-                    <div class="card-body p-2">
-                        <small class="text-muted">{{ video.caption }}</small>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="text-center mt-4">
-            <a href="{{ url_for('gallery') }}" class="btn btn-outline-primary">
-                <i class="fas fa-video me-2"></i>View Full Gallery
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- Upcoming Events -->
-{% if events and events|length > 0 %}
-<section class="section-padding" style="background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%);">
-    <div class="container">
-        <h2 class="section-title animate-fadeIn">Upcoming Events</h2>
-        <p class="section-subtitle animate-fadeIn">Join our upcoming family gatherings and celebrations</p>
-        <div class="row stagger-children">
-            {% for event in events %}
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card border-0 shadow-sm h-100 event-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="event-date-badge">
-                                <span class="event-day">{{ event.event_date.strftime('%d') }}</span>
-                                <span class="event-month">{{ event.event_date.strftime('%b') }}</span>
-                            </div>
-                            <div class="event-info flex-fill">
-                                <h6 class="mb-1">{{ event.title }}</h6>
-                                <small class="text-muted">{{ event.event_type|capitalize }}</small>
-                            </div>
-                        </div>
-                        <p class="text-muted mb-2 small">{{ event.description or 'A special family gathering.' }}</p>
-                        {% if event.location %}
-                        <p class="mb-1 small"><i class="fas fa-map-marker-alt me-1 text-primary"></i>{{ event.location }}</p>
-                        {% endif %}
-                        <p class="mb-0 small"><i class="fas fa-clock me-1 text-primary"></i>{{ event.event_date.strftime('%I:%M %p') }}</p>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="text-center mt-4">
-            <a href="{{ url_for('events_page') }}" class="btn btn-outline-primary">
-                <i class="fas fa-calendar-alt me-2"></i>View All Events
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- Family Best Moments -->
-{% if past_media and past_media|length > 0 %}
-<section class="section-padding" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #312E81 100%);">
-    <div class="container">
-        <h2 class="section-title animate-fadeIn" style="color:#fff;">Family Best Moments</h2>
-        <p class="section-subtitle animate-fadeIn">Highlights from our cherished past gatherings and celebrations</p>
-        <div class="row stagger-children">
-            {% for item in past_media %}
-            <div class="col-md-3 col-6 mb-4">
-                <div class="card border-0 shadow-sm overflow-hidden h-100">
-                    {% if item.media_type == 'video' %}
-                    <video style="width:100%; height:200px; object-fit:cover; background:#000;" muted playsinline preload="metadata" controls>
-                        <source src="{{ url_for('static', filename='uploads/' ~ item.filename) }}">
-                    </video>
                     {% else %}
-                    <img src="{{ url_for('static', filename='uploads/' ~ item.filename) }}"
-                         alt="{{ item.title }}"
-                         style="height:200px; object-fit:cover; width:100%;">
+                    <div class="moment-image lightbox-trigger" data-type="image" data-src="{{ url_for('static', filename='uploads/' + moment.filename) }}" data-caption="{{ moment.title }}" style="height: 250px; overflow: hidden; background: #f0f0f0; cursor: pointer;">
+                        <img src="{{ url_for('static', filename='uploads/' + moment.filename) }}" alt="{{ moment.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
                     {% endif %}
-                    <div class="card-body p-3">
-                        <h6 class="mb-1 text-truncate">{{ item.title }}</h6>
-                        {% if item.caption %}<p class="text-muted small mb-1">{{ item.caption }}</p>{% endif %}
-                        {% if item.event_date %}<small class="text-muted"><i class="fas fa-calendar me-1"></i>{{ item.event_date }}</small>{% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-2">{{ moment.title }}</h5>
+                        {% if moment.caption %}
+                        <p class="card-text text-muted flex-grow-1 mb-3">{{ moment.caption[:100] }}{% if moment.caption|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+                        {% if moment.event_date %}
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-calendar me-1"></i> {{ moment.event_date }}
+                        </p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-        <div class="text-center mt-4">
-            <a href="{{ url_for('events_page') }}" class="btn btn-outline-light">
-                <i class="fas fa-images me-2"></i>View Past Events Gallery
-            </a>
+        <div class="text-center mt-5">
+            <a href="{{ url_for('gallery') }}" class="btn btn-primary btn-lg">View Full Gallery</a>
         </div>
+        {% else %}
+        <div class="text-center p-5">
+            <p class="text-muted">No moments captured yet. Check back soon!</p>
+        </div>
+        {% endif %}
     </div>
 </section>
-{% endif %}
 
-<!-- Photo Lightbox -->
-<div id="photoOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.93); z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
-    <button onclick="closePhoto()" style="position:absolute;top:16px;right:24px;background:none;border:none;color:#fff;font-size:2.2rem;cursor:pointer;line-height:1;">&times;</button>
-    <img id="photoOverlayImg" src="" alt="" style="max-width:95vw; max-height:85vh; border-radius:10px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
-    <p id="photoOverlayCaption" style="color:#ddd; margin-top:12px; font-size:1rem;"></p>
-</div>
-
-<!-- Video Maximize Overlay -->
-<div id="videoOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
-    <button onclick="closeVideo()" style="position:absolute;top:16px;right:24px;background:none;border:none;color:#fff;font-size:2.2rem;cursor:pointer;line-height:1;">&times;</button>
-    <video id="overlayVideo" controls muted playsinline style="max-width:95vw; max-height:82vh; border-radius:10px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
-        <source id="overlayVideoSrc" src="">
+<!-- ===== LIGHTBOX MODAL ===== -->
+<div id="homeLightboxModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+    <button onclick="closeHomeLightbox()" style="position:absolute; top:18px; right:24px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer; z-index:2;">&times;</button>
+    <img id="homeLightboxImg" src="" alt="" style="display:none; max-width:95vw; max-height:85vh; border-radius:8px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
+    <video id="homeLightboxVideo" controls style="display:none; max-width:95vw; max-height:85vh; border-radius:8px; box-shadow:0 4px 40px rgba(0,0,0,0.7);">
+        <source id="homeLightboxVideoSrc" src="">
     </video>
-    <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
-        <p id="overlayVideoCaption" style="color:#ddd; font-size:1rem; margin:0;"></p>
-        <button onclick="toggleMute()" id="muteBtn" class="btn btn-sm btn-outline-light">
-            <i class="fas fa-volume-mute"></i> Unmute
-        </button>
-    </div>
-</div>
-
-<!-- Story Expand Overlay -->
-<div id="storyOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:#fff; border-radius:16px; max-width:700px; width:100%; max-height:85vh; overflow-y:auto; padding:36px; position:relative;">
-        <button onclick="closeStory()" style="position:absolute;top:14px;right:20px;background:none;border:none;font-size:1.8rem;cursor:pointer;color:#555;line-height:1;">&times;</button>
-        <h3 id="storyOverlayTitle" style="font-family:'Playfair Display',serif; margin-bottom:8px;"></h3>
-        <div style="font-size:0.85rem; color:#888; margin-bottom:20px;">
-            <span id="storyOverlayAuthor"></span> &bull; <span id="storyOverlayDate"></span>
-        </div>
-        <p id="storyOverlayBody" style="line-height:1.8; white-space:pre-wrap;"></p>
-    </div>
+    <p id="homeLightboxCaption" style="color:#ddd; margin-top:12px; font-size:1rem; text-align:center; padding:0 20px;"></p>
 </div>
 
 <script>
-// Photo lightbox
-function openPhoto(src, caption) {
-    document.getElementById('photoOverlayImg').src = src;
-    document.getElementById('photoOverlayCaption').textContent = caption;
-    document.getElementById('photoOverlay').style.display = 'flex';
-}
-function closePhoto() {
-    document.getElementById('photoOverlay').style.display = 'none';
-    document.getElementById('photoOverlayImg').src = '';
-}
-document.getElementById('photoOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closePhoto();
-});
-
-// Inline video play/pause
-document.querySelectorAll('.video-play-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const video = this.closest('[style]').querySelector('video');
-        if (video.paused) { video.play(); this.querySelector('i').className = 'fas fa-pause'; }
-        else { video.pause(); this.querySelector('i').className = 'fas fa-play'; }
-    });
-});
-
-// Video maximize
-document.querySelectorAll('.video-max-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+// Homepage Lightbox
+document.querySelectorAll('.lightbox-trigger').forEach(el => {
+    el.addEventListener('click', function() {
+        const type = this.dataset.type;
         const src = this.dataset.src;
-        const caption = this.dataset.caption;
-        const ov = document.getElementById('overlayVideo');
-        document.getElementById('overlayVideoSrc').src = src;
-        ov.load(); ov.muted = true;
-        document.getElementById('muteBtn').innerHTML = '<i class="fas fa-volume-mute"></i> Unmute';
-        document.getElementById('overlayVideoCaption').textContent = caption;
-        document.getElementById('videoOverlay').style.display = 'flex';
-        ov.play();
-    });
-});
-function closeVideo() {
-    const ov = document.getElementById('overlayVideo');
-    ov.pause();
-    document.getElementById('videoOverlay').style.display = 'none';
-    document.getElementById('overlayVideoSrc').src = '';
-}
-document.getElementById('videoOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeVideo();
-});
-function toggleMute() {
-    const ov = document.getElementById('overlayVideo');
-    ov.muted = !ov.muted;
-    document.getElementById('muteBtn').innerHTML = ov.muted
-        ? '<i class="fas fa-volume-mute"></i> Unmute'
-        : '<i class="fas fa-volume-up"></i> Mute';
-}
+        const caption = this.dataset.caption || '';
+        const modal = document.getElementById('homeLightboxModal');
+        const img = document.getElementById('homeLightboxImg');
+        const video = document.getElementById('homeLightboxVideo');
+        const videoSrc = document.getElementById('homeLightboxVideoSrc');
+        const cap = document.getElementById('homeLightboxCaption');
 
-// Story expand
-function openStory(title, body, author, date) {
-    document.getElementById('storyOverlayTitle').textContent = title;
-    document.getElementById('storyOverlayBody').textContent = body;
-    document.getElementById('storyOverlayAuthor').textContent = author;
-    document.getElementById('storyOverlayDate').textContent = date;
-    document.getElementById('storyOverlay').style.display = 'flex';
-}
-function closeStory() {
-    document.getElementById('storyOverlay').style.display = 'none';
-}
-document.getElementById('storyOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeStory();
-});
-
-// ===== HERO SLIDER (crossfade + arrows + dots + autoplay) =====
-(function () {
-    const slides = document.querySelectorAll('.hero-slide');
-    const dots = document.querySelectorAll('.hero-slider-dots .dot');
-    if (!slides.length) return;
-    let current = 0;
-    const total = slides.length;
-    const interval = 6500;
-
-    function goTo(index) {
-        if (index < 0) index = total - 1;
-        if (index > total - 1) index = 0;
-        slides.forEach(function (s, i) { s.classList.toggle('active', i === index); });
-        dots.forEach(function (d, i) { d.classList.toggle('active', i === index); });
-        current = index;
-    }
-    function next() { goTo(current + 1); }
-    function prev() { goTo(current - 1); }
-
-    const nextBtn = document.querySelector('.hero-arrow.next');
-    const prevBtn = document.querySelector('.hero-arrow.prev');
-    if (nextBtn) nextBtn.addEventListener('click', function () { next(); restart(); });
-    if (prevBtn) prevBtn.addEventListener('click', function () { prev(); restart(); });
-    dots.forEach(function (d) {
-        d.addEventListener('click', function () { goTo(parseInt(d.dataset.index, 10)); restart(); });
-    });
-
-    let timer = setInterval(next, interval);
-    function restart() {
-        clearInterval(timer);
-        timer = setInterval(next, interval);
-    }
-})();
-
-// ===== STAT COUNTERS =====
-(function () {
-    const counters = document.querySelectorAll('.stat-number');
-    if (!counters.length) return;
-
-    function animate(counter) {
-        const target = parseInt(counter.dataset.target, 10);
-        const duration = 1800;
-        const start = performance.now();
-        function frame(now) {
-            const progress = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            counter.textContent = Math.floor(eased * target);
-            if (progress < 1) requestAnimationFrame(frame);
+        if (type === 'video') {
+            img.style.display = 'none';
+            video.style.display = 'block';
+            videoSrc.src = src;
+            video.load();
+            video.play();
+        } else {
+            video.pause();
+            video.style.display = 'none';
+            img.src = src;
+            img.style.display = 'block';
         }
-        requestAnimationFrame(frame);
-    }
+        cap.textContent = caption;
+        modal.style.display = 'flex';
+    });
+});
 
-    const observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-                animate(entry.target);
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.5 });
-    counters.forEach(function (c) { observer.observe(c); });
-})();
+function closeHomeLightbox() {
+    const modal = document.getElementById('homeLightboxModal');
+    const video = document.getElementById('homeLightboxVideo');
+    video.pause();
+    modal.style.display = 'none';
+}
+
+document.getElementById('homeLightboxModal').addEventListener('click', function(e) {
+    if (e.target === this) closeHomeLightbox();
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeHomeLightbox();
+});
 </script>
+
+<!-- ===== CALL TO ACTION SECTION ===== -->
+<section class="py-5 bg-gradient-primary text-white">
+    <div class="container text-center">
+        <h3 class="mb-3">Want to be part of our family?</h3>
+        <p class="mb-4 fs-5">Join our community and start sharing your stories and memories with us.</p>
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+            <a href="{{ url_for('register_member') }}" class="btn btn-light btn-lg">Join Our Family</a>
+            <a href="{{ url_for('submit_story') }}" class="btn btn-outline-light btn-lg">Share Your Story</a>
+        </div>
+    </div>
+</section>
+
 {% endblock %}

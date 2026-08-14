@@ -218,6 +218,9 @@ class Announcement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     body = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(50), default='general')  # general / urgent / event / news
+    audience = db.Column(db.String(50), default='all')  # all / members / public
+    is_published = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
 
@@ -357,82 +360,8 @@ class MemberEditNotification(db.Model):
     def get_member(self):
         return FamilyMember.query.get(self.member_id)
 
-class FamilyTeam(db.Model):
-    """A team/committee within the family for organizing activities."""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    leader_id = db.Column(db.Integer, db.ForeignKey('family_member.id'), nullable=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def get_leader(self):
-        return FamilyMember.query.get(self.leader_id) if self.leader_id else None
-
-class FamilyTeamMember(db.Model):
-    """Membership of a member in a team."""
-    id = db.Column(db.Integer, primary_key=True)
-    team_id = db.Column(db.Integer, db.ForeignKey('family_team.id'), nullable=False)
-    member_id = db.Column(db.Integer, db.ForeignKey('family_member.id'), nullable=False)
-    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-class FamilyMeeting(db.Model):
-    """A scheduled online meeting for the family."""
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
-    meeting_date = db.Column(db.DateTime, nullable=False)
-    duration_minutes = db.Column(db.Integer, default=60)
-    meeting_link = db.Column(db.String(500))
-    team_id = db.Column(db.Integer, db.ForeignKey('family_team.id'), nullable=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=False)
-    is_public = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def get_team(self):
-        return FamilyTeam.query.get(self.team_id) if self.team_id else None
-
-class MeetingNotification(db.Model):
-    """Tracks which members have been notified about a meeting."""
-    id = db.Column(db.Integer, primary_key=True)
-    meeting_id = db.Column(db.Integer, db.ForeignKey('family_meeting.id'), nullable=False)
-    member_id = db.Column(db.Integer, db.ForeignKey('family_member.id'), nullable=False)
-    is_read = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def get_meeting(self):
-        return FamilyMeeting.query.get(self.meeting_id)
-
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-# ===== HOMEPAGE LIVE BACKGROUND SLIDER CONFIG =====
-# This list drives the rotating "live" background slider on the homepage.
-# Each entry = one slide.
-#
-# HOW TO CHANGE THE BACKGROUND IMAGE:
-#   The "image" value is just the filename of a picture that lives in the
-#   images/ folder (e.g. images/myphoto.jpg). To swap a background, put your
-#   picture into the images/ folder and edit ONLY the 'image':'yourfile.jpg'
-#   value below. Then restart the app.
-#
-#   Example:  {'image': 'family_1.jpg', ...}  ->  uses images/family_1.jpg
-#
-# The slider will crossfade + Ken Burns zoom through all listed slides.
-HERO_BACKGROUNDS = [
-    {'image': 'family1.JPG', 'title': 'Welcome to the Onyango Family', 'text': 'A community bound by love, tradition, and shared heritage. Explore the family tree, share stories, and preserve memories together.', 'badge': 'Building our legacy together', 'icon': 'fa-heart'},
-    {'image': 'family2.jpg', 'title': 'Gather, Reconnect, Celebrate', 'text': 'From annual reunions to milestone celebrations, every gathering strengthens the bonds that keep the Onyango spirit alive.', 'badge': 'Annual Reunions & Milestones', 'icon': 'fa-people-arrows'},
-    {'image': 'family3.JPG', 'title': 'Rooted in Heritage, Growing in Unity', 'text': 'Our elders carry the wisdom of generations. Walk with us as we preserve ancestral stories and pass them to the next generation.', 'badge': 'Honouring Our Elders', 'icon': 'fa-crown'},
-    {'image': 'family4.jpg', 'title': 'Preserving Memories That Matter', 'text': 'Capture cherished moments, upload photos and videos, and keep our family album alive for generations to come.', 'badge': 'Family Photo & Video Archive', 'icon': 'fa-images'},
-    {'image': 'family5.jpg', 'title': 'Stronger Together', 'text': 'Support one another through the welfare fund, mentorship, and community initiatives that uplift every branch of the family.', 'badge': 'Welfare & Community Support', 'icon': 'fa-hands-helping'},
-    {'image': 'family6.JPG', 'title': 'Passing Down Our Traditions', 'text': 'Language, customs, and stories from the ancestors guide the next generation toward a proud and unified future.', 'badge': 'Ancestral Roots & Customs', 'icon': 'fa-tree'},
-    {'image': 'family7.JPG', 'title': 'A Legacy of Faith & Family', 'text': 'Join us in celebrating faith, unity, and togetherness as we build a brighter future across all generations.', 'badge': 'Faith, Unity & Togetherness', 'icon': 'fa-dove'},
-]
-
-@app.context_processor
-def inject_hero_backgrounds():
-    """Make the homepage slider configuration available to all templates."""
-    return {'hero_backgrounds': HERO_BACKGROUNDS, 'now': datetime.utcnow()}
 
 @app.template_filter('fromjson')
 def fromjson_filter(value):
@@ -559,8 +488,11 @@ def home():
     stories = FamilyPost.query.filter_by(status='approved').order_by(FamilyPost.created_at.desc()).limit(3).all()
     photos = PastEventMedia.query.filter_by(media_type='photo').order_by(PastEventMedia.created_at.desc()).limit(6).all()
     videos = PastEventMedia.query.filter_by(media_type='video').order_by(PastEventMedia.created_at.desc()).limit(6).all()
-    upcoming_events = FamilyEvent.query.filter(FamilyEvent.event_date >= datetime.utcnow()).order_by(FamilyEvent.event_date.asc()).limit(4).all()
-    recent_announcements = Announcement.query.order_by(Announcement.created_at.desc()).limit(4).all()
+    upcoming_events = FamilyEvent.query.filter(
+        FamilyEvent.event_date >= datetime.utcnow(),
+        FamilyEvent.is_public == True
+    ).order_by(FamilyEvent.event_date.asc()).limit(4).all()
+    recent_announcements = Announcement.query.filter_by(is_published=True).order_by(Announcement.created_at.desc()).limit(4).all()
     # Admin-uploaded past event media for the public family gallery sections
     past_media = PastEventMedia.query.order_by(PastEventMedia.created_at.desc()).limit(8).all()
     return render_template('index.html', family_members=family_members, stories=stories, photos=photos, videos=videos,
@@ -610,21 +542,26 @@ def member_profile(member_id):
 @app.route('/events')
 def events_page():
     # Public visitors only see public events
-    if 'member_id' not in session:
+    is_member_logged_in = 'member_id' in session or current_user.is_authenticated
+    if not is_member_logged_in:
         events = FamilyEvent.query.filter(
             FamilyEvent.event_date >= datetime.utcnow(),
             FamilyEvent.is_public == True
         ).order_by(FamilyEvent.event_date.asc()).all()
     else:
-        # Logged-in members see all upcoming events (public + private)
+        # Logged-in members and admins see all upcoming events (public + private)
         events = FamilyEvent.query.filter(FamilyEvent.event_date >= datetime.utcnow()).order_by(FamilyEvent.event_date.asc()).all()
     past_events = PastEventMedia.query.order_by((PastEventMedia.created_at).desc()).all()
     return render_template('events.html', events=events, past_events=past_events,
-                         is_member_logged_in='member_id' in session)
+                         is_member_logged_in=is_member_logged_in)
 
 @app.route('/events/<int:event_id>/rsvp', methods=['POST'])
 def event_rsvp(event_id):
     event = FamilyEvent.query.get_or_404(event_id)
+    # Private events can only be RSVP'd to by registered members
+    if not event.is_public and 'member_id' not in session and not current_user.is_authenticated:
+        flash('This is a members-only event. Please log in to RSVP.', 'warning')
+        return redirect(url_for('events_page'))
     name = request.form.get('name', '').strip()
     email = request.form.get('email', '').strip()
     status = request.form.get('status', 'going').strip()
@@ -651,10 +588,17 @@ def search_page():
         FamilyPost.status == 'approved',
         db.or_(FamilyPost.title.ilike(f'%{query}%'), FamilyPost.body.ilike(f'%{query}%'), FamilyPost.author.ilike(f'%{query}%'))
     ).all()
-    events = FamilyEvent.query.filter(
-        FamilyEvent.is_public == True,
-        db.or_(FamilyEvent.title.ilike(f'%{query}%'), FamilyEvent.description.ilike(f'%{query}%'), FamilyEvent.location.ilike(f'%{query}%'))
-    ).all()
+    # Public visitors only see public events; logged-in members and admins see all events
+    is_member_logged_in = 'member_id' in session or current_user.is_authenticated
+    if is_member_logged_in:
+        events = FamilyEvent.query.filter(
+            db.or_(FamilyEvent.title.ilike(f'%{query}%'), FamilyEvent.description.ilike(f'%{query}%'), FamilyEvent.location.ilike(f'%{query}%'))
+        ).all()
+    else:
+        events = FamilyEvent.query.filter(
+            FamilyEvent.is_public == True,
+            db.or_(FamilyEvent.title.ilike(f'%{query}%'), FamilyEvent.description.ilike(f'%{query}%'), FamilyEvent.location.ilike(f'%{query}%'))
+        ).all()
     albums = PhotoAlbum.query.filter(
         db.or_(PhotoAlbum.name.ilike(f'%{query}%'), PhotoAlbum.description.ilike(f'%{query}%'))
     ).all()
@@ -673,7 +617,7 @@ def album_detail(album_id):
 
 @app.route('/announcements')
 def announcements_page():
-    announcements = Announcement.query.order_by(Announcement.created_at.desc()).all()
+    announcements = Announcement.query.filter_by(is_published=True).order_by(Announcement.created_at.desc()).all()
     return render_template('announcements.html', announcements=announcements)
 
 @app.route('/messages', methods=['GET', 'POST'])
@@ -758,8 +702,8 @@ def register_member():
             flash('Passwords do not match. Please try again.', 'danger')
             return redirect(url_for('register_member'))
         
-        if password and (len(password) < 6 or not re.search(r'[A-Za-z]', password) or not re.search(r'\d', password)):
-            flash('Password does not meet the required complexity. It must be at least 6 characters and contain letters, digits, and may include special characters.', 'danger')
+        if password and len(password) < 6:
+            flash('Password must be at least 6 characters long.', 'danger')
             return redirect(url_for('register_member'))
         
         if not name or not email:
@@ -848,26 +792,13 @@ def member_dashboard():
     approved_posts = FamilyPost.query.filter_by(status='approved').order_by(FamilyPost.created_at.desc()).limit(6).all()
     member_photos = FamilyPhoto.query.filter_by(member_id=member.id, status='approved').order_by(FamilyPhoto.created_at.desc()).all()
     member_videos = FamilyVideo.query.filter_by(member_id=member.id, status='approved').order_by(FamilyVideo.created_at.desc()).all()
-    # Teams and meetings
-    all_teams = FamilyTeam.query.order_by(FamilyTeam.created_at.desc()).all()
-    all_meetings = FamilyMeeting.query.filter(FamilyMeeting.meeting_date >= datetime.utcnow()).order_by(FamilyMeeting.meeting_date.asc()).all()
-    my_team_ids = [tm.team_id for tm in FamilyTeamMember.query.filter_by(member_id=member.id).all()]
-    my_teams = [t for t in all_teams if t.id in my_team_ids]
-    # Meeting notifications
-    my_notifications = MeetingNotification.query.filter_by(member_id=member.id, is_read=False).order_by(MeetingNotification.created_at.desc()).all()
-    unread_meeting_count = len(my_notifications)
     
     return render_template('member_dashboard.html',
                          member=member,
                          members=approved_members[:8],
                          posts=approved_posts,
                          photos=member_photos,
-                         videos=member_videos,
-                         all_teams=all_teams,
-                         all_meetings=all_meetings,
-                         my_teams=my_teams,
-                         my_notifications=my_notifications,
-                         unread_meeting_count=unread_meeting_count)
+                         videos=member_videos)
 
 
 @app.route('/member/photos/<int:photo_id>/edit', methods=['GET', 'POST'])
@@ -886,7 +817,7 @@ def edit_member_photo(photo_id):
     return render_template('edit_media.html', media=photo, media_type='photo')
 
 
-@app.route('/member/photos/<int:photo_id>/delete')
+@app.route('/member/photos/<int:photo_id>/delete', methods=['POST'])
 def delete_member_photo(photo_id):
     photo = FamilyPhoto.query.get_or_404(photo_id)
     if 'member_id' not in session or session['member_id'] != photo.member_id:
@@ -922,7 +853,7 @@ def edit_member_video(video_id):
     return render_template('edit_media.html', media=video, media_type='video')
 
 
-@app.route('/member/videos/<int:video_id>/delete')
+@app.route('/member/videos/<int:video_id>/delete', methods=['POST'])
 def delete_member_video(video_id):
     video = FamilyVideo.query.get_or_404(video_id)
     if 'member_id' not in session or session['member_id'] != video.member_id:
@@ -1586,6 +1517,7 @@ def admin_dashboard():
     pending_photos = FamilyPhoto.query.filter_by(status='pending').count()
     recent_pending_members = FamilyMember.query.filter_by(status='pending').order_by(FamilyMember.submitted_at.desc()).limit(5).all()
     recent_pending_posts = FamilyPost.query.filter_by(status='pending').order_by(FamilyPost.created_at.desc()).limit(5).all()
+    recent_approved_posts = FamilyPost.query.filter_by(status='approved').order_by(FamilyPost.created_at.desc()).limit(10).all()
     recent_pending_photos = FamilyPhoto.query.filter_by(status='pending').order_by(FamilyPhoto.created_at.desc()).limit(5).all()
     announcements = Announcement.query.order_by(Announcement.created_at.desc()).all()
     events = FamilyEvent.query.order_by(FamilyEvent.event_date.asc()).all()
@@ -1603,10 +1535,6 @@ def admin_dashboard():
     # Member edit notifications
     member_edit_notifications = MemberEditNotification.query.order_by(MemberEditNotification.created_at.desc()).limit(10).all()
     unread_notifications_count = MemberEditNotification.query.filter_by(is_read=False).count()
-    # Teams and meetings
-    all_teams = FamilyTeam.query.order_by(FamilyTeam.created_at.desc()).all()
-    all_meetings = FamilyMeeting.query.order_by(FamilyMeeting.meeting_date.asc()).all()
-    approved_members_list = FamilyMember.query.filter_by(status='approved').all()
     # RSVP records
     all_rsvps = EventRSVP.query.order_by(EventRSVP.created_at.desc()).all()
     rsvp_list = []
@@ -1627,6 +1555,7 @@ def admin_dashboard():
                          approved_posts=approved_posts,
                          pending_members=recent_pending_members,
                          pending_posts=recent_pending_posts,
+                         approved_posts_list=recent_approved_posts,
                          pending_photos=recent_pending_photos,
                          announcements=announcements,
                          events=events,
@@ -1637,120 +1566,7 @@ def admin_dashboard():
                          tree_stats=tree_stats,
                          member_edit_notifications=member_edit_notifications,
                          unread_notifications_count=unread_notifications_count,
-                         all_teams=all_teams,
-                         all_meetings=all_meetings,
-                         approved_members_list=approved_members_list,
                          rsvp_list=rsvp_list)
-
-@app.route('/admin/teams/create', methods=['POST'])
-@login_required
-def create_team():
-    name = request.form.get('name', '').strip()
-    description = request.form.get('description', '').strip()
-    leader_id = request.form.get('leader_id', type=int)
-    member_ids = request.form.getlist('member_ids')
-    
-    if not name:
-        flash('Team name is required.', 'warning')
-        return redirect(url_for('admin_dashboard'))
-    
-    team = FamilyTeam(name=name, description=description, leader_id=leader_id, created_by=current_user.id)
-    db.session.add(team)
-    db.session.flush()
-    
-    # Add members to the team
-    for mid in member_ids:
-        if mid:
-            membership = FamilyTeamMember(team_id=team.id, member_id=int(mid))
-            db.session.add(membership)
-    
-    db.session.commit()
-    flash(f'Team "{name}" has been created.', 'success')
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/teams/<int:team_id>/delete')
-@login_required
-def delete_team(team_id):
-    team = FamilyTeam.query.get_or_404(team_id)
-    name = team.name
-    # Delete memberships
-    FamilyTeamMember.query.filter_by(team_id=team.id).delete()
-    db.session.delete(team)
-    db.session.commit()
-    flash(f'Team "{name}" has been deleted.', 'danger')
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/meetings/create', methods=['POST'])
-@login_required
-def create_meeting():
-    title = request.form.get('title', '').strip()
-    description = request.form.get('description', '').strip()
-    meeting_date = request.form.get('meeting_date', '').strip()
-    duration_minutes = request.form.get('duration_minutes', type=int, default=60)
-    meeting_link = request.form.get('meeting_link', '').strip()
-    team_id = request.form.get('team_id', type=int)
-    is_public = request.form.get('is_public') == 'on'
-    
-    if not title or not meeting_date:
-        flash('Title and meeting date are required.', 'warning')
-        return redirect(url_for('admin_dashboard'))
-    
-    meeting = FamilyMeeting(
-        title=title,
-        description=description,
-        meeting_date=datetime.strptime(meeting_date, '%Y-%m-%dT%H:%M'),
-        duration_minutes=duration_minutes or 60,
-        meeting_link=meeting_link,
-        team_id=team_id,
-        created_by=current_user.id,
-        is_public=is_public
-    )
-    db.session.add(meeting)
-    db.session.flush()
-    
-    # Notify all approved members about the meeting
-    all_approved = FamilyMember.query.filter_by(status='approved').all()
-    for m in all_approved:
-        notification = MeetingNotification(meeting_id=meeting.id, member_id=m.id)
-        db.session.add(notification)
-    
-    db.session.commit()
-    flash(f'Meeting "{title}" has been scheduled. All members have been notified.', 'success')
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/meetings/<int:meeting_id>/send-reminder')
-@login_required
-def send_meeting_reminder(meeting_id):
-    """Resend meeting notifications to all approved members."""
-    meeting = FamilyMeeting.query.get_or_404(meeting_id)
-    all_approved = FamilyMember.query.filter_by(status='approved').all()
-    for m in all_approved:
-        existing = MeetingNotification.query.filter_by(meeting_id=meeting.id, member_id=m.id).first()
-        if not existing:
-            notification = MeetingNotification(meeting_id=meeting.id, member_id=m.id)
-            db.session.add(notification)
-    db.session.commit()
-    flash(f'Reminders sent for "{meeting.title}" to all members.', 'success')
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/member/meetings/read', methods=['POST'])
-def mark_meetings_read():
-    """Mark all meeting notifications as read for the logged-in member."""
-    if 'member_id' not in session:
-        return redirect(url_for('member_login'))
-    MeetingNotification.query.filter_by(member_id=session['member_id'], is_read=False).update({'is_read': True})
-    db.session.commit()
-    return redirect(url_for('member_dashboard'))
-
-@app.route('/admin/meetings/<int:meeting_id>/delete')
-@login_required
-def delete_meeting(meeting_id):
-    meeting = FamilyMeeting.query.get_or_404(meeting_id)
-    title = meeting.title
-    db.session.delete(meeting)
-    db.session.commit()
-    flash(f'Meeting "{title}" has been deleted.', 'danger')
-    return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/rsvps/<int:rsvp_id>/delete', methods=['POST'])
 @login_required
@@ -1760,35 +1576,6 @@ def admin_delete_rsvp(rsvp_id):
     db.session.commit()
     flash('RSVP deleted successfully.', 'success')
     return redirect(url_for('admin_dashboard'))
-
-@app.route('/member/teams/<int:team_id>/join')
-def join_team(team_id):
-    if 'member_id' not in session:
-        flash('Please log in first.', 'warning')
-        return redirect(url_for('member_login'))
-    member_id = session['member_id']
-    existing = FamilyTeamMember.query.filter_by(team_id=team_id, member_id=member_id).first()
-    if not existing:
-        membership = FamilyTeamMember(team_id=team_id, member_id=member_id)
-        db.session.add(membership)
-        db.session.commit()
-        flash('You have joined the team!', 'success')
-    else:
-        flash('You are already a member of this team.', 'info')
-    return redirect(url_for('member_dashboard'))
-
-@app.route('/member/teams/<int:team_id>/leave')
-def leave_team(team_id):
-    if 'member_id' not in session:
-        flash('Please log in first.', 'warning')
-        return redirect(url_for('member_login'))
-    member_id = session['member_id']
-    membership = FamilyTeamMember.query.filter_by(team_id=team_id, member_id=member_id).first()
-    if membership:
-        db.session.delete(membership)
-        db.session.commit()
-        flash('You have left the team.', 'info')
-    return redirect(url_for('member_dashboard'))
 
 @app.route('/admin/events')
 @login_required
@@ -1801,7 +1588,8 @@ def admin_events():
     return render_template('admin/events.html', events=events, past_events=past_events,
                          pending_members_count=pending_members_count,
                          pending_posts_count=pending_posts_count,
-                         pending_photos_count=pending_photos_count)
+                         pending_photos_count=pending_photos_count,
+                         now=datetime.utcnow())
 
 @app.route('/admin/announcements', methods=['GET', 'POST'])
 @login_required
@@ -1809,15 +1597,50 @@ def admin_announcements():
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         body = request.form.get('body', '').strip()
+        category = request.form.get('category', 'general').strip()
+        audience = request.form.get('audience', 'all').strip()
+        is_published = request.form.get('is_published') == 'on'
         if not title or not body:
             flash('Title and body are required.', 'warning')
             return redirect(url_for('admin_dashboard'))
-        announcement = Announcement(title=title, body=body, created_by=current_user.id)
+        announcement = Announcement(title=title, body=body, created_by=current_user.id,
+                                   category=category, audience=audience, is_published=is_published)
         db.session.add(announcement)
         db.session.commit()
         flash('Announcement created successfully.', 'success')
         return redirect(url_for('admin_dashboard'))
     # Announcements are managed directly on the admin dashboard
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/announcements/<int:announcement_id>/edit', methods=['POST'])
+@login_required
+def edit_announcement(announcement_id):
+    announcement = Announcement.query.get_or_404(announcement_id)
+    title = request.form.get('title', '').strip()
+    body = request.form.get('body', '').strip()
+    category = request.form.get('category', 'general').strip()
+    audience = request.form.get('audience', 'all').strip()
+    
+    if not title or not body:
+        flash('Title and body are required.', 'warning')
+        return redirect(url_for('admin_dashboard'))
+    
+    announcement.title = title
+    announcement.body = body
+    announcement.category = category
+    announcement.audience = audience
+    db.session.commit()
+    flash(f'Announcement "{title}" has been updated.', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/announcements/<int:announcement_id>/toggle', methods=['POST'])
+@login_required
+def toggle_announcement(announcement_id):
+    announcement = Announcement.query.get_or_404(announcement_id)
+    announcement.is_published = not announcement.is_published
+    db.session.commit()
+    status = 'published' if announcement.is_published else 'unpublished'
+    flash(f'Announcement "{announcement.title}" has been {status}.', 'success')
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/announcements/<int:announcement_id>/delete', methods=['POST'])
@@ -1844,7 +1667,12 @@ def create_event():
     if not title or not event_date:
         flash('Title and date are required for an event.', 'warning')
         return redirect(url_for('admin_events'))
-    event = FamilyEvent(title=title, description=description, event_date=datetime.strptime(event_date, '%Y-%m-%dT%H:%M'), location=location, event_type=event_type, created_by=current_user.id, is_public=is_public)
+    try:
+        event_datetime = datetime.strptime(event_date, '%Y-%m-%dT%H:%M')
+    except ValueError:
+        flash('Invalid date format. Please use the date picker.', 'warning')
+        return redirect(url_for('admin_events'))
+    event = FamilyEvent(title=title, description=description, event_date=event_datetime, location=location, event_type=event_type, created_by=current_user.id, is_public=is_public)
     db.session.add(event)
     db.session.commit()
     if is_public:
@@ -1862,7 +1690,9 @@ def edit_event(event_id):
     event_date = request.form.get('event_date', '').strip()
     location = request.form.get('location', '').strip()
     event_type = request.form.get('event_type', 'gathering').strip()
-    is_public = request.form.get('is_public') == 'on'
+    # Visibility: 'public' = visible to everyone on the website, 'private' = members portal only
+    visibility = request.form.get('visibility', 'public').strip()
+    is_public = True if visibility == 'public' else False
     
     if not title or not event_date:
         flash('Title and date are required for an event.', 'warning')
@@ -1876,7 +1706,10 @@ def edit_event(event_id):
     event.is_public = is_public
     db.session.commit()
     
-    flash(f'Event "{title}" has been updated.', 'success')
+    if is_public:
+        flash(f'Event "{title}" has been updated and is visible to the public.', 'success')
+    else:
+        flash(f'Event "{title}" has been updated and is visible to registered members only.', 'success')
     return redirect(url_for('admin_events'))
 
 @app.route('/admin/events/<int:event_id>/delete')
@@ -1930,6 +1763,25 @@ def upload_past_event():
     flash(f'"{title}" has been added to the past events gallery.', 'success')
     return redirect(url_for('admin_events'))
 
+@app.route('/admin/past-events/<int:event_id>/edit', methods=['POST'])
+@login_required
+def edit_past_event(event_id):
+    record = PastEventMedia.query.get_or_404(event_id)
+    title = request.form.get('title', '').strip()
+    caption = request.form.get('caption', '').strip()
+    event_date = request.form.get('event_date', '').strip()
+    
+    if not title:
+        flash('Title is required.', 'warning')
+        return redirect(url_for('admin_dashboard'))
+    
+    record.title = title
+    record.caption = caption
+    record.event_date = event_date
+    db.session.commit()
+    flash(f'"{title}" has been updated.', 'success')
+    return redirect(url_for('admin_dashboard'))
+
 @app.route('/admin/past-events/<int:event_id>/delete')
 @login_required
 def delete_past_event(event_id):
@@ -1943,7 +1795,7 @@ def delete_past_event(event_id):
     db.session.delete(record)
     db.session.commit()
     flash('Past event media has been deleted.', 'danger')
-    return redirect(url_for('admin_events'))
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/members')
 @login_required
@@ -2192,6 +2044,27 @@ def reject_post(post_id):
     db.session.commit()
     flash(f'Post "{post.title}" has been rejected.', 'warning')
     return redirect(url_for('admin_posts'))
+
+@app.route('/admin/posts/<int:post_id>/edit', methods=['POST'])
+@login_required
+def edit_post(post_id):
+    post = FamilyPost.query.get_or_404(post_id)
+    title = request.form.get('title', '').strip()
+    body = request.form.get('body', '').strip()
+    author = request.form.get('author', '').strip()
+    category = request.form.get('category', 'story').strip()
+    
+    if not title or not body:
+        flash('Title and body are required.', 'warning')
+        return redirect(url_for('admin_dashboard'))
+    
+    post.title = title
+    post.body = body
+    post.author = author
+    post.category = category
+    db.session.commit()
+    flash(f'Post "{title}" has been updated.', 'success')
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/posts/<int:post_id>/delete', methods=['POST'])
 @login_required
