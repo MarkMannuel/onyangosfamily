@@ -22,7 +22,11 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-secret-key'
 @app.route('/images/<path:filename>')
 def serve_background_image(filename):
     return send_from_directory('images', filename)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///family_database.db')
+
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///family_database.db')
+if db_url.startswith('postgres://'):
+    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
@@ -2106,76 +2110,78 @@ def ensure_primary_admin():
 with app.app_context():
     db.create_all()
     ensure_primary_admin()
-    # Ensure existing SQLite DB has the new columns for family_member
-    try:
-        res = db.session.execute(text("PRAGMA table_info('family_member')")).fetchall()
-        cols = [r[1] for r in res]
-        if 'username' not in cols:
-            db.session.execute(text('ALTER TABLE family_member ADD COLUMN username VARCHAR(80)'))
-            db.session.commit()
-            print('Added username column to family_member table')
-        if 'profile_picture' not in cols:
-            db.session.execute(text('ALTER TABLE family_member ADD COLUMN profile_picture VARCHAR(500)'))
-            db.session.commit()
-            print('Added profile_picture column to family_member table')
-        if 'password_hash' not in cols:
-            db.session.execute(text('ALTER TABLE family_member ADD COLUMN password_hash VARCHAR(200)'))
-            db.session.commit()
-            print('Added password_hash column to family_member table')
-        if 'must_change_password' not in cols:
-            db.session.execute(text("ALTER TABLE family_member ADD COLUMN must_change_password BOOLEAN DEFAULT 0"))
-            db.session.commit()
-            print('Added must_change_password column to family_member table')
-        if 'birthday' not in cols:
-            db.session.execute(text("ALTER TABLE family_member ADD COLUMN birthday VARCHAR(20)"))
-            db.session.commit()
-            print('Added birthday column to family_member table')
-        if 'anniversary_date' not in cols:
-            db.session.execute(text("ALTER TABLE family_member ADD COLUMN anniversary_date VARCHAR(20)"))
-            db.session.commit()
-            print('Added anniversary_date column to family_member table')
-    except Exception as e:
-        print('Could not ensure columns:', e)
-    
-    # Ensure new tables exist (they will be created by db.create_all(), but just in case)
-    try:
-        res = db.session.execute(text("PRAGMA table_info('password_reset_token')")).fetchall()
-    except Exception:
-        print('password_reset_token table will be created by db.create_all()')
-    try:
-        res = db.session.execute(text("PRAGMA table_info('family_tree_node')")).fetchall()
-        cols = [r[1] for r in res]
-        if 'gender' not in cols:
-            db.session.execute(text("ALTER TABLE family_tree_node ADD COLUMN gender VARCHAR(10) DEFAULT 'male'"))
-            db.session.commit()
-            print('Added gender column to family_tree_node table')
-        if 'spouse_id' not in cols:
-            db.session.execute(text('ALTER TABLE family_tree_node ADD COLUMN spouse_id INTEGER'))
-            db.session.commit()
-            print('Added spouse_id column to family_tree_node table')
-        if 'father_id' not in cols:
-            db.session.execute(text('ALTER TABLE family_tree_node ADD COLUMN father_id INTEGER'))
-            db.session.commit()
-            print('Added father_id column to family_tree_node table')
-        if 'mother_id' not in cols:
-            db.session.execute(text('ALTER TABLE family_tree_node ADD COLUMN mother_id INTEGER'))
-            db.session.commit()
-            print('Added mother_id column to family_tree_node table')
-        if 'birth_date' not in cols:
-            db.session.execute(text('ALTER TABLE family_tree_node ADD COLUMN birth_date VARCHAR(20)'))
-            db.session.commit()
-            print('Added birth_date column to family_tree_node table')
-    except Exception:
-        print('family_tree_node table will be created by db.create_all()')
-    try:
-        res = db.session.execute(text("PRAGMA table_info('family_photo')")).fetchall()
-        cols = [r[1] for r in res]
-        if 'album_id' not in cols:
-            db.session.execute(text('ALTER TABLE family_photo ADD COLUMN album_id INTEGER'))
-            db.session.commit()
-            print('Added album_id column to family_photo table')
-    except Exception as e:
-        print('Could not ensure album column:', e)
+
+    if db_url.startswith('sqlite'):
+        # Ensure existing SQLite DB has the new columns for family_member
+        try:
+            res = db.session.execute(text("PRAGMA table_info('family_member')")).fetchall()
+            cols = [r[1] for r in res]
+            if 'username' not in cols:
+                db.session.execute(text('ALTER TABLE family_member ADD COLUMN username VARCHAR(80)'))
+                db.session.commit()
+                print('Added username column to family_member table')
+            if 'profile_picture' not in cols:
+                db.session.execute(text('ALTER TABLE family_member ADD COLUMN profile_picture VARCHAR(500)'))
+                db.session.commit()
+                print('Added profile_picture column to family_member table')
+            if 'password_hash' not in cols:
+                db.session.execute(text('ALTER TABLE family_member ADD COLUMN password_hash VARCHAR(200)'))
+                db.session.commit()
+                print('Added password_hash column to family_member table')
+            if 'must_change_password' not in cols:
+                db.session.execute(text("ALTER TABLE family_member ADD COLUMN must_change_password BOOLEAN DEFAULT 0"))
+                db.session.commit()
+                print('Added must_change_password column to family_member table')
+            if 'birthday' not in cols:
+                db.session.execute(text("ALTER TABLE family_member ADD COLUMN birthday VARCHAR(20)"))
+                db.session.commit()
+                print('Added birthday column to family_member table')
+            if 'anniversary_date' not in cols:
+                db.session.execute(text("ALTER TABLE family_member ADD COLUMN anniversary_date VARCHAR(20)"))
+                db.session.commit()
+                print('Added anniversary_date column to family_member table')
+        except Exception as e:
+            print('Could not ensure columns:', e)
+
+        # Ensure new tables exist (they will be created by db.create_all(), but just in case)
+        try:
+            res = db.session.execute(text("PRAGMA table_info('password_reset_token')")).fetchall()
+        except Exception:
+            print('password_reset_token table will be created by db.create_all()')
+        try:
+            res = db.session.execute(text("PRAGMA table_info('family_tree_node')")).fetchall()
+            cols = [r[1] for r in res]
+            if 'gender' not in cols:
+                db.session.execute(text("ALTER TABLE family_tree_node ADD COLUMN gender VARCHAR(10) DEFAULT 'male'"))
+                db.session.commit()
+                print('Added gender column to family_tree_node table')
+            if 'spouse_id' not in cols:
+                db.session.execute(text('ALTER TABLE family_tree_node ADD COLUMN spouse_id INTEGER'))
+                db.session.commit()
+                print('Added spouse_id column to family_tree_node table')
+            if 'father_id' not in cols:
+                db.session.execute(text('ALTER TABLE family_tree_node ADD COLUMN father_id INTEGER'))
+                db.session.commit()
+                print('Added father_id column to family_tree_node table')
+            if 'mother_id' not in cols:
+                db.session.execute(text('ALTER TABLE family_tree_node ADD COLUMN mother_id INTEGER'))
+                db.session.commit()
+                print('Added mother_id column to family_tree_node table')
+            if 'birth_date' not in cols:
+                db.session.execute(text('ALTER TABLE family_tree_node ADD COLUMN birth_date VARCHAR(20)'))
+                db.session.commit()
+                print('Added birth_date column to family_tree_node table')
+        except Exception:
+            print('family_tree_node table will be created by db.create_all()')
+        try:
+            res = db.session.execute(text("PRAGMA table_info('family_photo')")).fetchall()
+            cols = [r[1] for r in res]
+            if 'album_id' not in cols:
+                db.session.execute(text('ALTER TABLE family_photo ADD COLUMN album_id INTEGER'))
+                db.session.commit()
+                print('Added album_id column to family_photo table')
+        except Exception as e:
+            print('Could not ensure album column:', e)
 if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
