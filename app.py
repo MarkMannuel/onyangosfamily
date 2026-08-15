@@ -1,6 +1,9 @@
+import cloudinary
+from cloudinary.uploader import upload as cloudinary_upload
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from flask import url_for as flask_url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -16,6 +19,103 @@ import json
 load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-secret-key')
+render_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+app.config['PUBLIC_BASE_URL'] = (
+    os.environ.get('PUBLIC_BASE_URL')
+    or (f"https://{render_hostname}" if render_hostname else '')
+).rstrip('/')
+
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+    secure=True,
+)
+
+
+def get_upload_folder():
+    configured = os.environ.get('UPLOAD_FOLDER')
+    if configured:
+        normalized = configured.strip()
+        if normalized.startswith('/') or normalized.startswith('\\') or normalized.startswith('~'):
+            return normalized
+        return os.path.abspath(normalized)
+
+    render_disk_path = os.environ.get('RENDER_DISK_PATH', '').strip()
+    if render_disk_path:
+        render_upload_dir = os.path.join(render_disk_path, 'uploads')
+        return render_upload_dir.replace('\\', '/')
+
+    return os.path.abspath(os.path.join(app.root_path, 'static', 'uploads'))
+
+
+def build_media_url(path_or_url):
+    if not path_or_url:
+        return ''
+    value = str(path_or_url).strip()
+    if value.startswith('http://') or value.startswith('https://'):
+        return value
+
+    normalized = value.replace('\\', '/').strip()
+    if normalized.startswith('/'): 
+        normalized = normalized[1:]
+    if normalized.startswith('static/'):
+        normalized = normalized[len('static/'):] 
+    if normalized.startswith('uploads/'):
+        media_path = '/' + normalized
+    elif normalized.startswith('media/'):
+        media_path = '/' + normalized
+    else:
+        media_path = '/uploads/' + normalized.lstrip('/')
+
+    base_url = app.config.get('PUBLIC_BASE_URL', '').strip().rstrip('/')
+    if base_url:
+        return f"{base_url}{media_path}"
+    return media_path
+
+
+def resolve_media_url(value):
+    if not value:
+        return ''
+    value = str(value).strip()
+    if value.startswith('http://') or value.startswith('https://'):
+        return value
+    if value.startswith('uploads/') or value.startswith('/uploads/'):
+        return build_media_url(value)
+    if value.startswith('static/') or value.startswith('/static/'):
+        return build_media_url(value)
+    return build_media_url(value)
+
+
+def upload_media_file(file, resource_type='auto', prefix='upload'):
+    if not file or not getattr(file, 'filename', ''):
+        return ''
+
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
+    api_key = os.environ.get('CLOUDINARY_API_KEY')
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET')
+    if cloud_name and api_key and api_secret:
+        try:
+            result = cloudinary_upload(file, resource_type=resource_type, folder='onyango-family')
+            secure_url = result.get('secure_url') or result.get('url')
+            if secure_url:
+                return secure_url
+        except Exception as exc:
+            app.logger.warning('Cloudinary upload failed: %s', exc)
+
+    filename = secure_filename(f"{prefix}_{datetime.utcnow().strftime('%Y%m%d%H%M%S_')}{file.filename}")
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.seek(0)
+    file.save(save_path)
+    return filename
+
+
+# Serve uploaded files through a stable public route so Render and browsers can resolve them reliably.
+@app.route('/uploads/<path:filename>')
+def serve_uploaded_file(filename):
+    return send_from_directory(get_upload_folder(), filename)
+
 
 # Serve background images from the root "images/" folder so they can be used
 # as CSS background-image sources. Access them at /images/<filename>.
@@ -23,12 +123,25 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-secret-key'
 def serve_background_image(filename):
     return send_from_directory('images', filename)
 
+
+def url_for_with_base(endpoint, **values):
+    url = flask_url_for(endpoint, **values)
+    if endpoint == 'static' and 'filename' in values:
+        return build_media_url(url)
+    return url
+
+
+app.jinja_env.globals['url_for'] = url_for_with_base
+app.jinja_env.globals['media_url'] = resolve_media_url
+app.jinja_env.filters['media_url'] = resolve_media_url
+
+
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///family_database.db')
 if db_url.startswith('postgres://'):
     db_url = db_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['UPLOAD_FOLDER'] = get_upload_folder()
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['ALLOWED_VIDEO_EXTENSIONS'] = {'mp4', 'webm', 'ogg', 'avi', 'mov', 'mkv'}
 app.config['ALLOWED_AUDIO_EXTENSIONS'] = {'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'}
@@ -366,6 +479,10 @@ class MemberEditNotification(db.Model):
 
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Expose helper functions to templates for absolute production URLs.
+app.jinja_env.globals['build_media_url'] = build_media_url
+app.jinja_env.globals['media_url'] = build_media_url
 
 @app.template_filter('fromjson')
 def fromjson_filter(value):
@@ -896,9 +1013,8 @@ def submit_story():
         story_image = request.files.get('story_image')
         if story_image and story_image.filename != '':
             if allowed_file(story_image.filename):
-                filename = secure_filename(f"story_{datetime.utcnow().strftime('%Y%m%d%H%M%S_')}{story_image.filename}")
-                story_image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                image_url = url_for('static', filename=f'uploads/{filename}')
+                uploaded_story_image = upload_media_file(story_image, resource_type='image', prefix='story')
+                image_url = resolve_media_url(uploaded_story_image)
             else:
                 flash('Story image file type not allowed. Use png, jpg, jpeg, or gif.', 'warning')
                 return redirect(request.url)
@@ -966,7 +1082,7 @@ def edit_profile_picture(member_id):
         return redirect(url_for('member_profile', member_id=member_id))
 
     # If member already has a profile picture, delete the old one
-    if member.profile_picture:
+    if member.profile_picture and not member.profile_picture.startswith('http'):
         try:
             old_path = os.path.join(app.config['UPLOAD_FOLDER'], member.profile_picture)
             if os.path.exists(old_path):
@@ -974,11 +1090,11 @@ def edit_profile_picture(member_id):
         except Exception:
             pass
 
-    filename = secure_filename(f"profile_{member.id}_" + datetime.utcnow().strftime('%Y%m%d%H%M%S_') + file.filename)
-    save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(save_path)
-
-    member.profile_picture = filename
+    profile_url = upload_media_file(file, resource_type='image', prefix=f'profile_{member.id}')
+    if profile_url.startswith('http'):
+        member.profile_picture = profile_url
+    else:
+        member.profile_picture = profile_url
     db.session.commit()
 
     flash('Profile picture updated successfully!', 'success')
@@ -1090,9 +1206,8 @@ def upload_photo(member_id):
             if not allowed_video_file(file.filename):
                 flash('File type not allowed. Use mp4, webm, ogg, avi, or mov.', 'warning')
                 return redirect(request.url)
-            filename = secure_filename(f"video_{member.id}_" + datetime.utcnow().strftime('%Y%m%d%H%M%S_') + file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            video = FamilyVideo(member_id=member.id, filename=filename, caption=caption, status='pending')
+            uploaded_video = upload_media_file(file, resource_type='video', prefix=f'video_{member.id}')
+            video = FamilyVideo(member_id=member.id, filename=uploaded_video, caption=caption, status='pending')
             db.session.add(video)
             db.session.commit()
             flash('Video uploaded successfully! Awaiting admin approval.', 'success')
@@ -1104,9 +1219,8 @@ def upload_photo(member_id):
             if not allowed_file(file.filename):
                 flash('File type not allowed. Use png, jpg, jpeg, or gif.', 'warning')
                 return redirect(request.url)
-            filename = secure_filename(f"member_{member.id}_" + datetime.utcnow().strftime('%Y%m%d%H%M%S_') + file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            photo = FamilyPhoto(member_id=member.id, album_id=album.id if album else None, filename=filename, caption=caption, status='pending')
+            uploaded_photo = upload_media_file(file, resource_type='image', prefix=f'member_{member.id}')
+            photo = FamilyPhoto(member_id=member.id, album_id=album.id if album else None, filename=uploaded_photo, caption=caption, status='pending')
             db.session.add(photo)
             db.session.commit()
             flash('Photo uploaded successfully! Awaiting admin approval.', 'success')
@@ -1751,13 +1865,13 @@ def upload_past_event():
         media_type = 'photo'
         filename = secure_filename(f"pastevent_photo_{datetime.utcnow().strftime('%Y%m%d%H%M%S_')}" + file.filename)
 
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    uploaded_media = upload_media_file(file, resource_type='video' if media_type == 'video' else 'image', prefix='pastevent')
 
     record = PastEventMedia(
         title=title,
         caption=caption,
         media_type=media_type,
-        filename=filename,
+        filename=uploaded_media,
         event_date=event_date,
         uploaded_by=current_user.id
     )
